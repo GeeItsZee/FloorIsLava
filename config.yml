@@ -1,0 +1,53 @@
+# The minimum number of players needed before game is started
+MinimumPlayers: 2
+
+# The reward for losing
+BaseReward: 50
+
+# The reward for winning (not including wagers)
+WinnerReward: 150
+
+# Countdown amount (countdowns are done every 10 server ticks)
+CountdownInSeconds: 5
+
+# Arena's world
+WorldName: world
+
+# PointOne and PointTwo make up the cuboid where players can break blocks.
+# Being outside this cuboid will remove players from the arena.
+PointOne:
+  x: 0
+  y: 0
+  z: 0
+PointTwo:
+  x: 0
+  y: 0
+  z: 0
+
+# Location that players will be teleported to when they use /floor watch
+WatchPoint:
+  x: 0
+  y: 0
+  z: 0
+
+# Commands run by the player before entering the arena
+PrestartCommands:
+  - v off
+
+# Commands that can be run by players inside the arena
+# These should only be the first word of the command
+# Ex: "/pm Notch" should not be in this list
+# Ex: "/pm" can be in this list
+WhitelistCommands:
+  - /floor
+  - /m
+  - /t
+
+# How often to check the arena (number of ingame ticks)
+TicksPerCheck: 5
+
+# Start degrading after 'x' FloorIsLava tick
+StartDegradeOn: 25
+
+# Degrade every 'x' FloorIsLava ticks once degrading is started
+DegradeOnTick: 15

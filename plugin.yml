@@ -1,11 +1,11 @@
 name: FloorIsLava
-main: com.yahoo.tracebachi.FloorIsLava.FloorIsLava
-version: Alpha
+main: com.yahoo.tracebachi.FloorIsLava.FloorIsLavaPlugin
+version: 1.0
 commands:
-    floor:
-        description: Use to interact with the FloorIsLava minigame.
-        usage: /floor [join/leave/count/watch/wager] [wager amount]
+  floor:
+    description: Main FIL command.
+  mfloor:
+    description: Main FIL management command.
 permissions:
-    FloorIsLava.staff:
-        description: Gives OP level control of FloorIsLava.
-        default: op
+  FloorIsLava.Staff:
+    description: Allows the user to control FIL start-stop-reload-enable-disable.
