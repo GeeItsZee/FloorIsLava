@@ -1,3 +1,20 @@
+/* FloorIsLava Minigame for Multiplayer Minecraft
+ * Copyright (C) 2015 Trace Bachi (tracebachi@yahoo.com)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.yahoo.tracebachi.FloorIsLava;
 
 import com.yahoo.tracebachi.FloorIsLava.UtilClasses.PlayerState;
@@ -14,6 +31,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -24,10 +42,8 @@ import java.util.*;
  */
 public class FloorArena implements Listener
 {
-    private static final String GOOD = ChatColor.DARK_GRAY + "[" + ChatColor.GREEN + "F.I.L." +
-        ChatColor.DARK_GRAY + "] " + ChatColor.GREEN;
-    private static final String BAD = ChatColor.DARK_GRAY + "[" + ChatColor.RED + "F.I.L." +
-        ChatColor.DARK_GRAY + "] " + ChatColor.RED;
+    private static final String GOOD = ChatColor.translateAlternateColorCodes('&', "&8[&aFIL&8]&a ");
+    private static final String BAD = ChatColor.translateAlternateColorCodes('&', "&8[&cFIL&8]&c ");
 
     private FloorIsLavaPlugin plugin;
     private ItemStack winPrize;
@@ -58,10 +74,19 @@ public class FloorArena implements Listener
     private int elapsedTicks = 0;
     private int degradeLevel = 0;
 
-    public FloorArena(FloorIsLavaPlugin plugin, ItemStack winPrize)
+    public FloorArena(FloorIsLavaPlugin plugin)
     {
         this.plugin = plugin;
-        this.winPrize = winPrize;
+        this.winPrize = new ItemStack(Material.POTATO_ITEM);
+
+        ItemMeta winTatoMeta = winPrize.getItemMeta();
+        winTatoMeta.setDisplayName(ChatColor.GOLD + "WinTato");
+        List<String> lore = new ArrayList<>();
+        lore.add("You won a round of FloorIsLava!");
+        lore.add("--");
+        lore.add("May the WinTato be with you - Zee");
+        winTatoMeta.setLore(lore);
+        winPrize.setItemMeta(winTatoMeta);
     }
 
     public String addWager(int amount, String name)

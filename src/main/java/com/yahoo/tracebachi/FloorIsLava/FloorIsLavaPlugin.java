@@ -1,3 +1,20 @@
+/* FloorIsLava Minigame for Multiplayer Minecraft
+ * Copyright (C) 2015 Trace Bachi (tracebachi@yahoo.com)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.yahoo.tracebachi.FloorIsLava;
 
 import com.yahoo.tracebachi.FloorIsLava.Commands.FloorCommand;
@@ -20,43 +37,35 @@ import java.util.List;
 public class FloorIsLavaPlugin extends JavaPlugin
 {
     private FloorArena arena;
-    private Economy economy = null;
-
-    public Economy getEconomy()
-    {
-        return economy;
-    }
+    private Economy economy;
 
     @Override
     public void onLoad()
     {
         File config = new File(getDataFolder(), "config.yml");
-        if(!config.exists()) { saveDefaultConfig(); }
+        if(!config.exists())
+        {
+            saveDefaultConfig();
+        }
     }
 
     @Override
     public void onEnable()
     {
+        reloadConfig();
+
         /*********************************************************************/
-        // Link with Vault Economy
         RegisteredServiceProvider<Economy> economyProvider = getServer()
             .getServicesManager()
             .getRegistration(net.milkbowl.vault.economy.Economy.class);
-        if(economyProvider != null) { economy = economyProvider.getProvider(); }
+
+        if(economyProvider != null)
+        {
+            economy = economyProvider.getProvider();
+        }
         /*********************************************************************/
 
-        ItemStack winTato = new ItemStack(Material.POTATO_ITEM);
-        ItemMeta winTatoMeta = winTato.getItemMeta();
-        winTatoMeta.setDisplayName(ChatColor.GOLD + "WinTato");
-        List<String> lore = new ArrayList<>();
-        lore.add("You won a round of FloorIsLava!");
-        lore.add("--");
-        lore.add("May the WinTato be with you - Zee");
-        winTatoMeta.setLore(lore);
-        winTato.setItemMeta(winTatoMeta);
-
-        reloadConfig();
-        arena = new FloorArena(this, winTato);
+        arena = new FloorArena(this);
         arena.loadConfig(getConfig());
         getServer().getPluginManager().registerEvents(arena, this);
 
@@ -72,5 +81,10 @@ public class FloorIsLavaPlugin extends JavaPlugin
 
         arena.forceStop();
         arena = null;
+    }
+
+    public Economy getEconomy()
+    {
+        return economy;
     }
 }
