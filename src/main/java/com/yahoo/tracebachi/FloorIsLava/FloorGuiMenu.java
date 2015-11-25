@@ -137,6 +137,11 @@ public class FloorGuiMenu implements Listener
 
     private boolean matchesItemStack(ItemStack original, ItemStack input)
     {
+        if(original == null || input == null)
+        {
+            return false;
+        }
+
         if(input.getType() == original.getType())
         {
             boolean originalHasMeta = original.hasItemMeta();

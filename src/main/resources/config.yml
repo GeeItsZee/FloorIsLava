@@ -19,16 +19,22 @@ PointOne:
   x: 0
   y: 0
   z: 0
+  yaw: 0.0
+  pitch: 0.0
 PointTwo:
   x: 0
   y: 0
   z: 0
+  yaw: 0.0
+  pitch: 0.0
 
 # Location that players will be teleported to when they use /floor watch
 WatchPoint:
   x: 0
   y: 0
   z: 0
+  yaw: 0.0
+  pitch: 0.0
 
 # Commands run by the player before entering the arena
 PrestartCommands:

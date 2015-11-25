@@ -26,12 +26,21 @@ public class Point
     private final int x;
     private final int y;
     private final int z;
+    private final double yaw;
+    private final double pitch;
 
     public Point(int x, int y, int z)
+    {
+        this(x, y, z, 0.0, 0.0);
+    }
+
+    public Point(int x, int y, int z, double yaw, double pitch)
     {
         this.x = x;
         this.y = y;
         this.z = z;
+        this.yaw = yaw;
+        this.pitch = pitch;
     }
 
     public Point(ConfigurationSection section)
@@ -39,6 +48,8 @@ public class Point
         this.x = section.getInt("x");
         this.y = section.getInt("y");
         this.z = section.getInt("z");
+        this.yaw = section.getDouble("yaw", 0.0);
+        this.pitch = section.getDouble("pitch", 0.0);
     }
 
     public int x()
@@ -56,9 +67,19 @@ public class Point
         return z;
     }
 
+    public double getYaw()
+    {
+        return yaw;
+    }
+
+    public double getPitch()
+    {
+        return pitch;
+    }
+
     @Override
     public String toString()
     {
-        return x + ", " + y + ", " + z;
+        return x + ", " + y + ", " + z + ", " + yaw + ", " + pitch;
     }
 }
