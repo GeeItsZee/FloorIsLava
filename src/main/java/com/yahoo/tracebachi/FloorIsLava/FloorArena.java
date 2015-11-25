@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.yahoo.tracebachi.FloorIsLava;
 
 import com.yahoo.tracebachi.FloorIsLava.UtilClasses.PlayerState;
@@ -42,8 +41,8 @@ import java.util.*;
  */
 public class FloorArena implements Listener
 {
-    private static final String GOOD = ChatColor.translateAlternateColorCodes('&', "&8[&aFIL&8]&a ");
-    private static final String BAD = ChatColor.translateAlternateColorCodes('&', "&8[&cFIL&8]&c ");
+    public static final String GOOD = ChatColor.translateAlternateColorCodes('&', "&8[&aFIL&8]&a ");
+    public static final String BAD = ChatColor.translateAlternateColorCodes('&', "&8[&cFIL&8]&c ");
 
     private FloorIsLavaPlugin plugin;
     private ItemStack winPrize;
@@ -176,7 +175,7 @@ public class FloorArena implements Listener
         Iterator<Map.Entry<String, PlayerState>> iter = playing.entrySet().iterator();
         World world = Bukkit.getWorld(worldName);
 
-        arenaBlocks.saveBlocks(world);
+        arenaBlocks.save(world);
 
         while(iter.hasNext())
         {
@@ -211,13 +210,7 @@ public class FloorArena implements Listener
             }
         }
 
-        arenaTask = Bukkit.getScheduler().runTaskTimer(plugin,
-            new Runnable()
-            {
-                @Override
-                public void run() { tick(); }
-            },
-            10, ticksPerCheck);
+        arenaTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 10, ticksPerCheck);
 
         started = true;
     }
@@ -511,7 +504,7 @@ public class FloorArena implements Listener
         playing.clear();
         watching.clear();
 
-        arenaBlocks.restoreBlocks();
+        arenaBlocks.restore();
 
         if(arenaTask != null)
         {

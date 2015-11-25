@@ -14,22 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.yahoo.tracebachi.FloorIsLava;
 
 import com.yahoo.tracebachi.FloorIsLava.Commands.FloorCommand;
 import com.yahoo.tracebachi.FloorIsLava.Commands.ManageFloorCommand;
 import net.milkbowl.vault.economy.Economy;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Trace Bachi (BigBossZee) on 8/20/2015.
@@ -37,6 +30,7 @@ import java.util.List;
 public class FloorIsLavaPlugin extends JavaPlugin
 {
     private FloorArena arena;
+    private FloorGuiMenu guiMenu;
     private Economy economy;
 
     @Override
@@ -68,8 +62,10 @@ public class FloorIsLavaPlugin extends JavaPlugin
         arena = new FloorArena(this);
         arena.loadConfig(getConfig());
         getServer().getPluginManager().registerEvents(arena, this);
+        guiMenu = new FloorGuiMenu(arena);
+        getServer().getPluginManager().registerEvents(guiMenu, this);
 
-        getCommand("floor").setExecutor(new FloorCommand(arena));
+        getCommand("floor").setExecutor(new FloorCommand(arena, guiMenu));
         getCommand("mfloor").setExecutor(new ManageFloorCommand(this, arena));
     }
 
@@ -78,6 +74,8 @@ public class FloorIsLavaPlugin extends JavaPlugin
     {
         getCommand("mfloor").setExecutor(null);
         getCommand("floor").setExecutor(null);
+
+        guiMenu = null;
 
         arena.forceStop();
         arena = null;

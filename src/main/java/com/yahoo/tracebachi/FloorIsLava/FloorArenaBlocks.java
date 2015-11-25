@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.yahoo.tracebachi.FloorIsLava;
 
 import com.yahoo.tracebachi.FloorIsLava.UtilClasses.Point;
@@ -51,7 +50,7 @@ public class FloorArenaBlocks
             Math.min(alphaY, betaY), Math.min(alphaZ, betaZ));
     }
 
-    public void saveBlocks(World world)
+    public void save(World world)
     {
         for(int i = lower.x(); i <= upper.x(); ++i)
         {
@@ -65,7 +64,7 @@ public class FloorArenaBlocks
         }
     }
 
-    public void restoreBlocks()
+    public void restore()
     {
         for(BlockState state : blockStates)
         {

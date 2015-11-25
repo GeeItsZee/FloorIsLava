@@ -1,6 +1,7 @@
 name: FloorIsLava
 main: com.yahoo.tracebachi.FloorIsLava.FloorIsLavaPlugin
-version: 1.0
+version: 2.0
+depend: [Vault]
 commands:
   floor:
     description: Main FIL command.

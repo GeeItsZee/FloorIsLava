@@ -1,6 +1,23 @@
+/* FloorIsLava Minigame for Multiplayer Minecraft
+ * Copyright (C) 2015 Trace Bachi (tracebachi@yahoo.com)
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.yahoo.tracebachi.FloorIsLava.Commands;
 
 import com.yahoo.tracebachi.FloorIsLava.FloorArena;
+import com.yahoo.tracebachi.FloorIsLava.FloorGuiMenu;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -12,16 +29,16 @@ import org.bukkit.entity.Player;
  */
 public class FloorCommand implements CommandExecutor
 {
-    private static final String GOOD = ChatColor.DARK_GRAY + "[" + ChatColor.GREEN + "F.I.L." +
-        ChatColor.DARK_GRAY + "] " + ChatColor.GREEN;
-    private static final String BAD = ChatColor.DARK_GRAY + "[" + ChatColor.RED + "F.I.L." +
-        ChatColor.DARK_GRAY + "] " + ChatColor.RED;
+    private static final String GOOD = ChatColor.translateAlternateColorCodes('&', "&8[&aFIL&8]&a ");
+    private static final String BAD = ChatColor.translateAlternateColorCodes('&', "&8[&cFIL&8]&c ");
 
     private final FloorArena arena;
+    private final FloorGuiMenu menu;
 
-    public FloorCommand(FloorArena arena)
+    public FloorCommand(FloorArena arena, FloorGuiMenu menu)
     {
         this.arena = arena;
+        this.menu = menu;
     }
 
     @Override
@@ -33,28 +50,21 @@ public class FloorCommand implements CommandExecutor
             return true;
         }
 
-        if(args.length == 0)
-        {
-            sender.sendMessage(BAD + "/floor [join, leave, watch, count, wager] [wager amount]" );
-            return true;
-        }
-
         Player player = (Player) sender;
-        String lowerArg = args[0].toLowerCase();
 
-        if(lowerArg.startsWith("j"))
+        if(args.length >= 2 && args[0].startsWith("w"))
         {
-            player.sendMessage(arena.add(player));
+            Integer amount = parseInt(args[1]);
+            if(amount == null || amount <= 0)
+            {
+                player.sendMessage(BAD + "That is not a valid amount to wager.");
+            }
+            else
+            {
+                player.sendMessage(arena.addWager(amount, player.getName()));
+            }
         }
-        else if(lowerArg.startsWith("l"))
-        {
-            player.sendMessage(arena.remove(player));
-        }
-        else if(lowerArg.equals("watch"))
-        {
-            player.teleport(arena.getWatchLocation());
-        }
-        else if(lowerArg.startsWith("c"))
+        else if(args.length >= 1 && args[0].startsWith("c"))
         {
             int playerCount = arena.getWatchingSize();
             int wager = arena.getWager();
@@ -70,22 +80,11 @@ public class FloorCommand implements CommandExecutor
                     " players waiting to play for $" + wager + ".");
             }
         }
-        else if(lowerArg.equals("wager") && args.length >= 2)
-        {
-            Integer amount = parseInt(args[1]);
-            if(amount >= 0)
-            {
-                player.sendMessage(arena.addWager(amount, player.getName()));
-            }
-            else
-            {
-                player.sendMessage(BAD + "That is not a valid amount to wager.");
-            }
-        }
         else
         {
-            player.sendMessage(BAD + "/floor [join, leave, watch, count, wager] [wager amount]" );
+            menu.showTo(player);
         }
+
         return true;
     }
 
