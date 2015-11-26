@@ -342,7 +342,8 @@ public class FloorArena implements Listener
 
         Point watchPoint = new Point(config.getConfigurationSection("WatchPoint"));
         watchLocation = new Location(Bukkit.getWorld(worldName),
-            watchPoint.x(), watchPoint.y(), watchPoint.z());
+            watchPoint.x(), watchPoint.y(), watchPoint.z(),
+            (float) watchPoint.yaw(), (float) watchPoint.pitch());
     }
 
     public String forceStart()

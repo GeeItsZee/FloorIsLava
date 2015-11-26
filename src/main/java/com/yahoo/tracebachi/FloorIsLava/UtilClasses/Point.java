@@ -67,12 +67,12 @@ public class Point
         return z;
     }
 
-    public double getYaw()
+    public double yaw()
     {
         return yaw;
     }
 
-    public double getPitch()
+    public double pitch()
     {
         return pitch;
     }
