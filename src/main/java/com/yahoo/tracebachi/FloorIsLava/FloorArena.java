@@ -644,36 +644,36 @@ public class FloorArena implements Listener {
 					{
 						player.sendMessage(BAD + "You can not go invisible for another " + (((long) invisUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastInvisUse.get(player)) / 1000)) + " seconds!");
 					}
-					else if (heldItem != null && heldItem.getType().equals(Material.WEB))
+				}
+				else if (heldItem != null && heldItem.getType().equals(Material.WEB))
+				{
+					if (canUseDeWebber.get(player) == null)
+						player.sendMessage(BAD + "You can not use the de-webber yet!");
+					else if (canUseDeWebber.get(player))
 					{
-						if (canUseDeWebber.get(player) == null)
-							player.sendMessage(BAD + "You can not use the de-webber yet!");
-						else if (canUseDeWebber.get(player))
+						if (heldItem.getAmount() == 1)
 						{
-							if (heldItem.getAmount() == 1)
-							{
-								player.getInventory().remove(heldItem);
-							}
-							else if (heldItem.getAmount() > 1)
-							{
-								heldItem.setAmount(heldItem.getAmount() - 1);
-							}
-							deweb(player, player.getLocation());
-							canUseDeWebber.put(player, false);
-							msSinceLastDeWebbing.put(player, System.currentTimeMillis());
-							dewebUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+							player.getInventory().remove(heldItem);
+						}
+						else if (heldItem.getAmount() > 1)
+						{
+							heldItem.setAmount(heldItem.getAmount() - 1);
+						}
+						deweb(player, player.getLocation());
+						canUseDeWebber.put(player, false);
+						msSinceLastDeWebbing.put(player, System.currentTimeMillis());
+						dewebUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 
-								@Override
-								public void run()
-								{
-									canUseDeWebber.put(player, true);
-								}
-							}, deWebUseDelay * ticksPerCheck);
-						}
-						else if (!canUseDeWebber.get(player))
-						{
-							player.sendMessage(BAD + "You can not use the de-webber for another " + (((long) deWebUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastDeWebbing.get(player)) / 1000)) + " seconds!");
-						}
+							@Override
+							public void run()
+							{
+								canUseDeWebber.put(player, true);
+							}
+						}, deWebUseDelay * ticksPerCheck);
+					}
+					else if (!canUseDeWebber.get(player))
+					{
+						player.sendMessage(BAD + "You can not use the de-webber for another " + (((long) deWebUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastDeWebbing.get(player)) / 1000)) + " seconds!");
 					}
 				}
 			}
@@ -1023,7 +1023,7 @@ public class FloorArena implements Listener {
 				p.showPlayer(player);
 			}
 		}
-		
+
 		canUseTnt.clear();
 		canUseBoost.clear();
 		canUseHook.clear();
