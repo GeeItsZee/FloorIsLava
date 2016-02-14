@@ -16,6 +16,9 @@
  */
 package com.yahoo.tracebachi.FloorIsLava;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -27,141 +30,204 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 /**
  * Created by Trace Bachi (tracebachi@yahoo.com, BigBossZee) on 11/24/15.
  */
-public class FloorGuiMenu implements Listener
-{
-    private FloorArena arena;
-    private Inventory inventory;
-    private ItemStack joinItem;
-    private ItemStack leaveItem;
-    private ItemStack watchItem;
-    private ItemStack helpItem;
+public class FloorGuiMenu implements Listener {
+	private FloorArena arena;
+	private ItemStack leaveItem;
+	private ItemStack watchItem;
+	private ItemStack helpItem;
+	private ItemStack statusItem;
+	private ItemStack kit1;
+	private ItemStack kit2;
+	private ItemStack kit3;
 
-    public FloorGuiMenu(FloorArena arena)
-    {
-        this.arena = arena;
-        this.inventory = Bukkit.createInventory(null, 9, "Floor Is Lava Menu");
-        createMenuItems();
-    }
+	public FloorGuiMenu(FloorArena arena)
+	{
+		this.arena = arena;
+	}
 
-    public void showTo(Player player)
-    {
-        ItemMeta meta = joinItem.getItemMeta();
-        String hasStarted = arena.hasStarted() ? ChatColor.RED + "Started" : ChatColor.GREEN + "Waiting";
+	public void showTo(Player player)
+	{
+		String name = this.arena.getKits().get(player) != null ? ((FloorKits) this.arena.getKits().get(player)).getName() : "";
+		Inventory inventory = Bukkit.createInventory(null, 18, "Floor Is Lava Menu");
+		createKitItems(inventory);
+		createMenuItems(inventory);
 
-        meta.setLore(Arrays.asList(ChatColor.WHITE + "Click to join Floor Is Lava",
-            ChatColor.YELLOW + "Status: " + hasStarted,
-            ChatColor.YELLOW + "Wager: " + ChatColor.GREEN + Integer.toString(arena.getWager())));
-        joinItem.setItemMeta(meta);
+		ItemMeta meta = statusItem.getItemMeta();
+		String hasStarted = arena.hasStarted() ? ChatColor.RED + "Started" : ChatColor.GREEN + "Waiting";
 
-        inventory.setItem(0, joinItem);
+		meta.setLore(Arrays.asList(ChatColor.YELLOW + "Status: " + hasStarted, ChatColor.YELLOW + "Wager: " + ChatColor.GREEN + Integer.toString(arena.getWager())));
+		statusItem.setItemMeta(meta);
+		inventory.setItem(5, statusItem);
 
-        player.openInventory(inventory);
-    }
+		if (name.equals("Potatonator"))
+		{
+			this.kit1.setType(Material.BAKED_POTATO);
+			inventory.setItem(11, this.kit1);
+		}
+		else if (name.equals("Potato Assassin"))
+		{
+			this.kit2.setType(Material.BAKED_POTATO);
+			inventory.setItem(13, this.kit2);
+		}
+		else if (name.equals("Potato Wizard"))
+		{
+			this.kit3.setType(Material.BAKED_POTATO);
+			inventory.setItem(15, this.kit3);
+		}
+		player.openInventory(inventory);
+	}
 
-    @EventHandler
-    public void onPlayerInteract(InventoryClickEvent event)
-    {
-        Inventory inventory = event.getInventory();
+	@EventHandler
+	public void onPlayerInteract(InventoryClickEvent event)
+	{
+		Inventory inventory = event.getInventory();
+		if (!inventory.getName().equals("Floor Is Lava Menu"))
+		{
+			return;
+		}
+		Player player = (Player) event.getWhoClicked();
+		ItemStack clickedItem = event.getCurrentItem();
 
-        if(!inventory.getName().equals("Floor Is Lava Menu")) { return; }
+		event.setCancelled(true);
+		if (matchesItemStack(this.leaveItem, clickedItem))
+		{
+			player.closeInventory();
+			player.sendMessage(this.arena.remove(player));
+		}
+		else if (matchesItemStack(this.watchItem, clickedItem))
+		{
+			player.closeInventory();
+			player.sendMessage(FloorArena.GOOD + "Teleporting to watch location ... ");
+			player.teleport(this.arena.getWatchLocation());
+		}
+		else if (matchesItemStack(this.helpItem, clickedItem))
+		{
+			player.closeInventory();
+		}
+		else if (matchesItemStack(this.kit1, clickedItem))
+		{
+			player.closeInventory();
+			this.arena.getKits().put(player, this.arena.getPotatonator());
+			player.sendMessage(FloorArena.GOOD + this.arena.getPotatonator().getName() + " class equipped!");
+		}
+		else if (matchesItemStack(this.kit2, clickedItem))
+		{
+			player.closeInventory();
+			this.arena.getKits().put(player, this.arena.getPotatoAssassin());
+			player.sendMessage(FloorArena.GOOD + this.arena.getPotatoAssassin().getName() + " class equipped!");
+		}
+		else if (matchesItemStack(this.kit3, clickedItem))
+		{
+			player.closeInventory();
+			this.arena.getKits().put(player, this.arena.getPotatoWizard());
+			player.sendMessage(FloorArena.GOOD + this.arena.getPotatoWizard().getName() + " class equipped!");
+		}
+	}
 
-        Player player = (Player) event.getWhoClicked();
-        ItemStack clickedItem = event.getCurrentItem();
+	private void createMenuItems(Inventory inventory)
+	{
+		this.leaveItem = new ItemStack(Material.LEATHER_LEGGINGS);
+		ItemMeta meta = this.leaveItem.getItemMeta();
+		meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Leave");
+		meta.setLore(Collections.singletonList(ChatColor.WHITE + "Click to leave Floor Is Lava"));
+		this.leaveItem.setItemMeta(meta);
 
-        event.setCancelled(true);
+		this.watchItem = new ItemStack(Material.EYE_OF_ENDER);
+		meta = this.watchItem.getItemMeta();
+		meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Watch");
+		meta.setLore(Collections.singletonList(ChatColor.WHITE + "Click to watch other players"));
+		this.watchItem.setItemMeta(meta);
 
-        if(matchesItemStack(joinItem, clickedItem))
-        {
-            player.closeInventory();
-            player.sendMessage(arena.add(player));
-        }
-        else if(matchesItemStack(leaveItem, clickedItem))
-        {
-            player.closeInventory();
-            player.sendMessage(arena.remove(player));
-        }
-        else if(matchesItemStack(watchItem, clickedItem))
-        {
-            player.closeInventory();
-            player.sendMessage(FloorArena.GOOD + "Teleporting to watch location ... ");
-            player.teleport(arena.getWatchLocation());
-        }
-        else if(matchesItemStack(helpItem, clickedItem))
-        {
-            player.closeInventory();
-        }
-    }
+		this.helpItem = new ItemStack(Material.MAP);
+		meta = this.helpItem.getItemMeta();
+		meta.setDisplayName(ChatColor.YELLOW + "Menu");
+		meta.setLore(Arrays.asList(new String[] { ChatColor.WHITE + "  /floor",
+						ChatColor.YELLOW + "Wagering Money",
+						ChatColor.WHITE + "  /floor wager [amount]",
+						ChatColor.YELLOW + "Arena Status",
+						ChatColor.WHITE + "  /floor count",
+						ChatColor.YELLOW + "Join Arena",
+						ChatColor.WHITE + "  /floor join" }));
+		this.helpItem.setItemMeta(meta);
 
-    private void createMenuItems()
-    {
-        ItemMeta meta;
+		this.statusItem = new ItemStack(Material.PAPER);
+		meta = this.statusItem.getItemMeta();
+		meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Status");
+		this.statusItem.setItemMeta(meta);
 
-        this.joinItem = new ItemStack(Material.LEATHER_CHESTPLATE);
-        meta = joinItem.getItemMeta();
-        meta.setDisplayName("" + ChatColor.BOLD + ChatColor.YELLOW + "Join");
-        meta.setLore(Collections.singletonList(ChatColor.WHITE + "Click to join Floor Is Lava"));
-        joinItem.setItemMeta(meta);
+		inventory.setItem(2, this.leaveItem);
+		inventory.setItem(3, this.watchItem);
+		inventory.setItem(5, this.statusItem);
+		inventory.setItem(6, this.helpItem);
+		inventory.setItem(11, this.kit1);
+		inventory.setItem(13, this.kit2);
+		inventory.setItem(15, this.kit3);
+	}
 
-        this.leaveItem = new ItemStack(Material.LEATHER_LEGGINGS);
-        meta = leaveItem.getItemMeta();
-        meta.setDisplayName("" + ChatColor.BOLD + ChatColor.YELLOW + "Leave");
-        meta.setLore(Collections.singletonList(ChatColor.WHITE + "Click to leave Floor Is Lava"));
-        leaveItem.setItemMeta(meta);
+	private void createKitItems(Inventory inventory)
+	{
+		this.kit1 = new ItemStack(Material.POTATO_ITEM);
+		this.kit2 = new ItemStack(Material.POTATO_ITEM);
+		this.kit3 = new ItemStack(Material.POTATO_ITEM);
 
-        this.watchItem = new ItemStack(Material.EYE_OF_ENDER);
-        meta = watchItem.getItemMeta();
-        meta.setDisplayName("" + ChatColor.BOLD + ChatColor.YELLOW + "Watch");
-        meta.setLore(Collections.singletonList(ChatColor.WHITE + "Click to watch other players"));
-        watchItem.setItemMeta(meta);
+		ItemMeta kit1Meta = this.kit1.getItemMeta();
+		ItemMeta kit2Meta = this.kit2.getItemMeta();
+		ItemMeta kit3Meta = this.kit3.getItemMeta();
 
-        this.helpItem = new ItemStack(Material.MAP);
-        meta = helpItem.getItemMeta();
-        meta.setDisplayName("" + ChatColor.YELLOW + "Menu");
-        meta.setLore(Arrays.asList(
-            ChatColor.WHITE + "  /floor",
-            ChatColor.YELLOW + "Wagering Money", ChatColor.WHITE + "  /floor wager [amount]",
-            ChatColor.YELLOW + "Arena Status", ChatColor.WHITE + "  /floor count"));
-        helpItem.setItemMeta(meta);
+		kit1Meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + this.arena.getPotatonator().getName());
+		kit2Meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + this.arena.getPotatoAssassin().getName());
+		kit3Meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + this.arena.getPotatoWizard().getName());
 
-        inventory.setItem(0, joinItem);
-        inventory.setItem(1, leaveItem);
-        inventory.setItem(2, watchItem);
-        inventory.setItem(8, helpItem);
-    }
+		kit1Meta.setLore(Arrays.asList(new String[] { ChatColor.GRAY + "Throwing TNT: " + ChatColor.GREEN + "3",
+						ChatColor.GRAY + "Player Launcher: " + ChatColor.GREEN + "2",
+						ChatColor.GRAY + "De-Webber: " + ChatColor.DARK_RED + "0",
+						ChatColor.GRAY + "Rod of Invisibility: " + ChatColor.DARK_RED + "0",
+						ChatColor.GRAY + "Boost: " + ChatColor.DARK_RED + "0" }));
 
-    private boolean matchesItemStack(ItemStack original, ItemStack input)
-    {
-        if(original == null || input == null)
-        {
-            return false;
-        }
+		kit2Meta.setLore(Arrays.asList(new String[] { ChatColor.GRAY + "Throwing TNT: " + ChatColor.GREEN + "1",
+						ChatColor.GRAY + "Player Launcher: " + ChatColor.GREEN + "2",
+						ChatColor.GRAY + "De-Webber: " + ChatColor.DARK_RED + "0",
+						ChatColor.GRAY + "Rod of Invisibility: " + ChatColor.GREEN + "2",
+						ChatColor.GRAY + "Boost: " + ChatColor.DARK_RED + "0" }));
 
-        if(input.getType() == original.getType())
-        {
-            boolean originalHasMeta = original.hasItemMeta();
-            boolean inputHasMeta = input.hasItemMeta();
+		kit3Meta.setLore(Arrays.asList(new String[] { ChatColor.GRAY + "Throwing TNT: " + ChatColor.DARK_RED + "0",
+						ChatColor.GRAY + "Player Launcher: " + ChatColor.DARK_RED + "0",
+						ChatColor.GRAY + "De-Webber: " + ChatColor.GREEN + "2",
+						ChatColor.GRAY + "Rod of Invisibility: " + ChatColor.GREEN + "1",
+						ChatColor.GRAY + "Boost: " + ChatColor.GREEN + "2" }));
 
-            if(originalHasMeta && inputHasMeta)
-            {
-                ItemMeta originalMeta = original.getItemMeta();
-                ItemMeta inputMeta = input.getItemMeta();
+		this.kit1.setItemMeta(kit1Meta);
+		this.kit2.setItemMeta(kit2Meta);
+		this.kit3.setItemMeta(kit3Meta);
+	}
 
-                if(originalMeta.hasDisplayName() && inputMeta.hasDisplayName())
-                {
-                    return originalMeta.getDisplayName().equals(inputMeta.getDisplayName());
-                }
-            }
-            else
-            {
-                return originalHasMeta == inputHasMeta;
-            }
-        }
-        return false;
-    }
+	private boolean matchesItemStack(ItemStack original, ItemStack input)
+	{
+		if ((original == null) || (input == null))
+		{
+			return false;
+		}
+		if (input.getType() == original.getType())
+		{
+			boolean originalHasMeta = original.hasItemMeta();
+			boolean inputHasMeta = input.hasItemMeta();
+			if ((originalHasMeta) && (inputHasMeta))
+			{
+				ItemMeta originalMeta = original.getItemMeta();
+				ItemMeta inputMeta = input.getItemMeta();
+				if ((originalMeta.hasDisplayName()) && (inputMeta.hasDisplayName()))
+				{
+					return originalMeta.getDisplayName().equals(inputMeta.getDisplayName());
+				}
+			}
+			else
+			{
+				return originalHasMeta == inputHasMeta;
+			}
+		}
+		return false;
+	}
 }

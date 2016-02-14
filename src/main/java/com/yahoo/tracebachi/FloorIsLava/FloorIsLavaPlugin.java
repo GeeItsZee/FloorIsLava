@@ -16,73 +16,75 @@
  */
 package com.yahoo.tracebachi.FloorIsLava;
 
-import com.yahoo.tracebachi.FloorIsLava.Commands.FloorCommand;
-import com.yahoo.tracebachi.FloorIsLava.Commands.ManageFloorCommand;
-import net.milkbowl.vault.economy.Economy;
+import java.io.File;
+
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
+import com.yahoo.tracebachi.FloorIsLava.Commands.FloorCommand;
+import com.yahoo.tracebachi.FloorIsLava.Commands.ManageFloorCommand;
+
+import net.milkbowl.vault.economy.Economy;
 
 /**
  * Created by Trace Bachi (BigBossZee) on 8/20/2015.
  */
 public class FloorIsLavaPlugin extends JavaPlugin
 {
-    private FloorArena arena;
-    private FloorGuiMenu guiMenu;
-    private Economy economy;
+	private FloorArena arena;
+	private FloorGuiMenu guiMenu;
+	private Economy economy;
 
-    @Override
-    public void onLoad()
-    {
-        File config = new File(getDataFolder(), "config.yml");
-        if(!config.exists())
-        {
-            saveDefaultConfig();
-        }
-    }
+	@Override
+	public void onLoad()
+	{
+		File config = new File(getDataFolder(), "config.yml");
+		if (!config.exists())
+		{
+			saveDefaultConfig();
+		}
+	}
 
-    @Override
-    public void onEnable()
-    {
-        reloadConfig();
+	@Override
+	public void onEnable()
+	{
+		reloadConfig();
 
-        /*********************************************************************/
-        RegisteredServiceProvider<Economy> economyProvider = getServer()
-            .getServicesManager()
-            .getRegistration(net.milkbowl.vault.economy.Economy.class);
+		/*********************************************************************/
+		RegisteredServiceProvider<Economy> economyProvider = getServer()
+					.getServicesManager()
+					.getRegistration(net.milkbowl.vault.economy.Economy.class);
 
-        if(economyProvider != null)
-        {
-            economy = economyProvider.getProvider();
-        }
-        /*********************************************************************/
+		if (economyProvider != null)
+		{
+			economy = economyProvider.getProvider();
+		}
+		/*********************************************************************/
 
-        arena = new FloorArena(this);
-        arena.loadConfig(getConfig());
-        getServer().getPluginManager().registerEvents(arena, this);
-        guiMenu = new FloorGuiMenu(arena);
-        getServer().getPluginManager().registerEvents(guiMenu, this);
+		arena = new FloorArena(this);
+		arena.loadConfig(getConfig());
+		getServer().getPluginManager().registerEvents(arena, this);
+		guiMenu = new FloorGuiMenu(arena);
+		getServer().getPluginManager().registerEvents(guiMenu, this);
 
-        getCommand("floor").setExecutor(new FloorCommand(arena, guiMenu));
-        getCommand("mfloor").setExecutor(new ManageFloorCommand(this, arena));
-    }
+		getCommand("floor").setExecutor(new FloorCommand(arena, guiMenu));
+		getCommand("mfloor").setExecutor(new ManageFloorCommand(this, arena));
+	}
 
-    @Override
-    public void onDisable()
-    {
-        getCommand("mfloor").setExecutor(null);
-        getCommand("floor").setExecutor(null);
+	@Override
+	public void onDisable()
+	{
+		getCommand("mfloor").setExecutor(null);
+		getCommand("floor").setExecutor(null);
 
-        guiMenu = null;
+		guiMenu = null;
 
-        arena.forceStop();
-        arena = null;
-    }
+		arena.forceStop();
+		arena = null;
+	}
 
-    public Economy getEconomy()
-    {
-        return economy;
-    }
+	public Economy getEconomy()
+	{
+		return economy;
+	}
 }
