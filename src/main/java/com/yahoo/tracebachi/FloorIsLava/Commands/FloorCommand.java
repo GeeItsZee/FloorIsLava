@@ -77,10 +77,6 @@ public class FloorCommand implements CommandExecutor {
 				player.sendMessage(GOOD + "There are " + playerCount + " players waiting to play for $" + wager + ".");
 			}
 		}
-		else if (args.length >= 1 && args[0].startsWith("j"))
-		{
-			player.sendMessage(arena.add(player));
-		}
 		else
 		{
 			menu.showTo(player);

@@ -33,6 +33,7 @@ public class FloorIsLavaPlugin extends JavaPlugin
 {
 	private FloorArena arena;
 	private FloorGuiMenu guiMenu;
+	private FloorLoadoutGuiMenu loadoutMenu;
 	private Economy economy;
 
 	@Override
@@ -64,7 +65,9 @@ public class FloorIsLavaPlugin extends JavaPlugin
 		arena = new FloorArena(this);
 		arena.loadConfig(getConfig());
 		getServer().getPluginManager().registerEvents(arena, this);
-		guiMenu = new FloorGuiMenu(arena);
+		loadoutMenu = new FloorLoadoutGuiMenu(this, arena);
+		getServer().getPluginManager().registerEvents(loadoutMenu, this);
+		guiMenu = new FloorGuiMenu(arena, loadoutMenu);
 		getServer().getPluginManager().registerEvents(guiMenu, this);
 
 		getCommand("floor").setExecutor(new FloorCommand(arena, guiMenu));
@@ -86,5 +89,10 @@ public class FloorIsLavaPlugin extends JavaPlugin
 	public Economy getEconomy()
 	{
 		return economy;
+	}
+	
+	public FloorGuiMenu getMenu()
+	{
+		return guiMenu;
 	}
 }

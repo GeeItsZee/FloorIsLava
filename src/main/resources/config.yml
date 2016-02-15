@@ -28,8 +28,8 @@ ThrowingTNTCancelDistance: 0
 # Enable player launcher when players enter the arena
 UsePlayerLauncher: True
 
-# Enable de-webber when players enter the arena
-UseDe-Webber: True
+# Enable webber when players enter the arena
+UseWebber: True
 
 # Enable rod of invisibility when players enter the arena
 UseRodOfInvisibility: True

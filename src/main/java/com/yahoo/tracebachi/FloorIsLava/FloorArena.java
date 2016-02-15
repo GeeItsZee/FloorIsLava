@@ -17,6 +17,7 @@
 package com.yahoo.tracebachi.FloorIsLava;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -73,15 +74,12 @@ public class FloorArena implements Listener {
 	private FloorIsLavaPlugin plugin;
 	private ItemStack winPrize;
 
-	private FloorKits potatonator;
-	private FloorKits potatoAssassin;
-	private FloorKits potatoWizard;
-
 	private ItemStack tnt;
 	private ItemStack hook;
-	private ItemStack deweb;
+	private ItemStack web;
 	private ItemStack invis;
 	private ItemStack boost;
+	private List<ItemStack> defaultLoadout = new ArrayList<ItemStack>();
 
 	private boolean started = false;
 	private boolean enabled = true;
@@ -90,17 +88,18 @@ public class FloorArena implements Listener {
 	private BukkitTask kitEnableTask;
 	private BukkitTask tntUseTask;
 	private BukkitTask hookUseTask;
-	private BukkitTask dewebUseTask;
+	private BukkitTask webUseTask;
 	private BukkitTask invisUseTask;
 	private BukkitTask boostUseTask;
 	private FloorArenaBlocks arenaBlocks;
 	private Location watchLocation;
 
 	private HashMap<String, PlayerState> playing = new HashMap<>();
-	private HashMap<Player, FloorKits> kits = new HashMap<>();
+	private HashMap<Player, HashMap<ItemStack, Integer>> loadouts = new HashMap<>();
+	private HashMap<Player, Integer> loadoutPoints = new HashMap<>();
 	private HashMap<Player, Boolean> canUseTnt = new HashMap<>();
 	private HashMap<Player, Boolean> canUseHook = new HashMap<>();
-	private HashMap<Player, Boolean> canUseDeWebber = new HashMap<>();
+	private HashMap<Player, Boolean> canUseWebber = new HashMap<>();
 	private HashMap<Player, Boolean> canUseInvis = new HashMap<>();
 	private HashMap<Player, Boolean> canUseBoost = new HashMap<>();
 	private HashMap<Player, Long> msSinceLastTNTThrow = new HashMap<>();
@@ -139,9 +138,11 @@ public class FloorArena implements Listener {
 		this.winPrize = new ItemStack(Material.POTATO_ITEM);
 		this.tnt = new ItemStack(Material.TNT);
 		this.hook = new ItemStack(Material.TRIPWIRE_HOOK);
-		this.deweb = new ItemStack(Material.WEB);
+		this.web = new ItemStack(Material.WEB);
 		this.invis = new ItemStack(Material.BLAZE_ROD);
 		this.boost = new ItemStack(Material.FEATHER);
+		ItemStack[] stack = { tnt, hook, web, invis, boost };
+		this.defaultLoadout.addAll(Arrays.asList(stack));
 
 		ItemMeta winTatoMeta = winPrize.getItemMeta();
 		winTatoMeta.setDisplayName(ChatColor.GOLD + "WinTato");
@@ -160,9 +161,9 @@ public class FloorArena implements Listener {
 		hookMeta.setDisplayName(ChatColor.AQUA + "Player Launcher");
 		hook.setItemMeta(hookMeta);
 
-		ItemMeta dewebMeta = deweb.getItemMeta();
-		dewebMeta.setDisplayName(ChatColor.GREEN + "De-Webber");
-		deweb.setItemMeta(dewebMeta);
+		ItemMeta dewebMeta = web.getItemMeta();
+		dewebMeta.setDisplayName(ChatColor.GREEN + "Webber");
+		web.setItemMeta(dewebMeta);
 
 		ItemMeta invisMeta = hook.getItemMeta();
 		invisMeta.setDisplayName(ChatColor.GRAY + "Rod of Invisibility");
@@ -171,20 +172,6 @@ public class FloorArena implements Listener {
 		ItemMeta boostMeta = boost.getItemMeta();
 		boostMeta.setDisplayName(ChatColor.YELLOW + "Boost");
 		boost.setItemMeta(boostMeta);
-
-		tnt.setAmount(3);
-		hook.setAmount(2);
-		potatonator = new FloorKits("Potatonator", new ItemStack[] { new ItemStack(tnt), new ItemStack(hook) });
-
-		tnt.setAmount(1);
-		hook.setAmount(2);
-		invis.setAmount(2);
-		potatoAssassin = new FloorKits("Potato Assassin", new ItemStack[] { new ItemStack(tnt), new ItemStack(hook), new ItemStack(invis) });
-
-		deweb.setAmount(2);
-		boost.setAmount(2);
-		invis.setAmount(1);
-		potatoWizard = new FloorKits("Potato Wizard", new ItemStack[] { new ItemStack(deweb), new ItemStack(boost), new ItemStack(invis) });
 	}
 
 	public String addWager(int amount, String name)
@@ -224,8 +211,6 @@ public class FloorArena implements Listener {
 
 		playing.put(playerName, null);
 		watching.add(playerName);
-		if (!kits.containsKey(player))
-			kits.put(player, potatonator);
 
 		broadcast(GOOD + playerName + " has joined.");
 		resetCoundown();
@@ -237,7 +222,6 @@ public class FloorArena implements Listener {
 		String name = player.getName();
 		PlayerState state = playing.remove(name);
 		watching.remove(name);
-		kits.remove(player);
 
 		if (state != null)
 		{
@@ -273,7 +257,7 @@ public class FloorArena implements Listener {
 		while (iter.hasNext())
 		{
 			Map.Entry<String, PlayerState> entry = iter.next();
-			Player player = Bukkit.getPlayerExact(entry.getKey());
+			Player player = Bukkit.getPlayer(entry.getKey());
 
 			if (player != null && player.isOnline())
 			{
@@ -290,9 +274,19 @@ public class FloorArena implements Listener {
 				{
 					Bukkit.getServer().dispatchCommand(player, command);
 				}
+				ItemStack[] contents;
+				if (loadouts.get(player) == null)
+				{
+					ItemStack[] temp = { tnt, hook, web, invis, boost };
+					contents = temp;
+				}
+				else
+				{
+					contents = getContents(loadouts.get(player));
+				}
 
 				player.getInventory().setArmorContents(new ItemStack[] {});
-				player.getInventory().setContents(kits.get(player).getKit());
+				player.getInventory().setContents(contents);
 				player.teleport(arenaBlocks.getRandomLocationInside(world));
 			}
 			else
@@ -313,7 +307,7 @@ public class FloorArena implements Listener {
 					Player player = Bukkit.getPlayer(name);
 					canUseTnt.put(player, true);
 					canUseHook.put(player, true);
-					canUseDeWebber.put(player, true);
+					canUseWebber.put(player, true);
 					canUseInvis.put(player, true);
 					canUseBoost.put(player, true);
 					player.sendMessage(GOOD + "Kit items are now enabled!");
@@ -435,24 +429,19 @@ public class FloorArena implements Listener {
 		return watchLocation;
 	}
 
-	public FloorKits getPotatonator()
+	public HashMap<Player, HashMap<ItemStack, Integer>> getLoadouts()
 	{
-		return potatonator;
+		return loadouts;
 	}
 
-	public FloorKits getPotatoAssassin()
+	public HashMap<Player, Integer> getLoadoutPoints()
 	{
-		return potatoAssassin;
+		return loadoutPoints;
 	}
 
-	public FloorKits getPotatoWizard()
+	public List<ItemStack> getDefaultLoadout()
 	{
-		return potatoWizard;
-	}
-
-	public HashMap<Player, FloorKits> getKits()
-	{
-		return kits;
+		return defaultLoadout;
 	}
 
 	/*************************************************************************/
@@ -474,7 +463,7 @@ public class FloorArena implements Listener {
 		tntUseDelay = config.getInt("ThrowingTNTUseDelay");
 		blocksToCancelTnt = config.getInt("ThrowingTNTCancelDistance");
 		hookUseDelay = config.getInt("PlayerLauncherUseDelay");
-		deWebUseDelay = config.getInt("De-WebberUseDelay");
+		deWebUseDelay = config.getInt("WebberUseDelay");
 		invisUseDelay = config.getInt("RodOfInvisibilityUseDelay");
 		boostUseDelay = config.getInt("BoostUseDelay");
 
@@ -645,37 +634,6 @@ public class FloorArena implements Listener {
 						player.sendMessage(BAD + "You can not go invisible for another " + (((long) invisUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastInvisUse.get(player)) / 1000)) + " seconds!");
 					}
 				}
-				else if (heldItem != null && heldItem.getType().equals(Material.WEB))
-				{
-					if (canUseDeWebber.get(player) == null)
-						player.sendMessage(BAD + "You can not use the de-webber yet!");
-					else if (canUseDeWebber.get(player))
-					{
-						if (heldItem.getAmount() == 1)
-						{
-							player.getInventory().remove(heldItem);
-						}
-						else if (heldItem.getAmount() > 1)
-						{
-							heldItem.setAmount(heldItem.getAmount() - 1);
-						}
-						deweb(player, player.getLocation());
-						canUseDeWebber.put(player, false);
-						msSinceLastDeWebbing.put(player, System.currentTimeMillis());
-						dewebUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
-
-							@Override
-							public void run()
-							{
-								canUseDeWebber.put(player, true);
-							}
-						}, deWebUseDelay * ticksPerCheck);
-					}
-					else if (!canUseDeWebber.get(player))
-					{
-						player.sendMessage(BAD + "You can not use the de-webber for another " + (((long) deWebUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastDeWebbing.get(player)) / 1000)) + " seconds!");
-					}
-				}
 			}
 		}
 	}
@@ -742,9 +700,11 @@ public class FloorArena implements Listener {
 						{
 							heldItem.setAmount(heldItem.getAmount() - 1);
 						}
-						Vector vector = player.getLocation().getDirection();
+						Location loc = new Location(player.getWorld(), player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(), player.getLocation().getYaw(), player.getLocation().getPitch());
+						loc.setPitch(-30f);
+						Vector vector = loc.getDirection();
 						vector.add(new Vector(0.0, 0.15, 0.0));
-						vector.multiply(2.0);
+						vector.multiply(2);
 						player.setVelocity(vector);
 						player.playSound(player.getLocation(), Sound.GHAST_FIREBALL, 1f, 1f);
 						canUseBoost.put(player, false);
@@ -772,7 +732,7 @@ public class FloorArena implements Listener {
 						Player looking = getTarget(player, Bukkit.getOnlinePlayers());
 						if (looking != null && playing.containsKey(looking.getName()))
 						{
-							if (player.getLocation().distance(looking.getLocation()) < 6)
+							if (player.getLocation().distance(looking.getLocation()) <= 6)
 							{
 								if (heldItem.getAmount() == 1)
 								{
@@ -850,33 +810,40 @@ public class FloorArena implements Listener {
 				}
 				else if (heldItem != null && heldItem.getType().equals(Material.WEB))
 				{
-					if (canUseDeWebber.get(player) == null)
-						player.sendMessage(BAD + "You can not use the de-webber yet!");
-					else if (canUseDeWebber.get(player))
+					if (canUseWebber.get(player) == null)
+						player.sendMessage(BAD + "You can not use the webber yet!");
+					else if (canUseWebber.get(player))
 					{
-						if (heldItem.getAmount() == 1)
+						Player looking = getTarget(player, Bukkit.getOnlinePlayers());
+						if (looking != null && playing.containsKey(looking.getName()))
 						{
-							player.getInventory().remove(heldItem);
-						}
-						else if (heldItem.getAmount() > 1)
-						{
-							heldItem.setAmount(heldItem.getAmount() - 1);
-						}
-						deweb(player, player.getLocation());
-						canUseDeWebber.put(player, false);
-						msSinceLastDeWebbing.put(player, System.currentTimeMillis());
-						dewebUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
-
-							@Override
-							public void run()
+							if (player.getLocation().distance(looking.getLocation()) <= 15)
 							{
-								canUseDeWebber.put(player, true);
+								if (heldItem.getAmount() == 1)
+								{
+									player.getInventory().remove(heldItem);
+								}
+								else if (heldItem.getAmount() > 1)
+								{
+									heldItem.setAmount(heldItem.getAmount() - 1);
+								}
+								webber(looking);
+								canUseWebber.put(player, false);
+								msSinceLastDeWebbing.put(player, System.currentTimeMillis());
+								webUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+
+									@Override
+									public void run()
+									{
+										canUseWebber.put(player, true);
+									}
+								}, deWebUseDelay * ticksPerCheck);
 							}
-						}, deWebUseDelay * ticksPerCheck);
+						}
 					}
-					else if (!canUseDeWebber.get(player))
+					else if (!canUseWebber.get(player))
 					{
-						player.sendMessage(BAD + "You can not use the de-webber for another " + (((long) deWebUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastDeWebbing.get(player)) / 1000)) + " seconds!");
+						player.sendMessage(BAD + "You can not use the webber for another " + (((long) deWebUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastDeWebbing.get(player)) / 1000)) + " seconds!");
 					}
 				}
 			}
@@ -1027,7 +994,7 @@ public class FloorArena implements Listener {
 		canUseTnt.clear();
 		canUseBoost.clear();
 		canUseHook.clear();
-		canUseDeWebber.clear();
+		canUseWebber.clear();
 		canUseInvis.clear();
 
 		arenaBlocks.restore();
@@ -1067,10 +1034,10 @@ public class FloorArena implements Listener {
 			invisUseTask.cancel();
 			invisUseTask = null;
 		}
-		if (dewebUseTask != null)
+		if (webUseTask != null)
 		{
-			dewebUseTask.cancel();
-			dewebUseTask = null;
+			webUseTask.cancel();
+			webUseTask = null;
 		}
 
 		started = false;
@@ -1106,13 +1073,12 @@ public class FloorArena implements Listener {
 		return target;
 	}
 
-	private void deweb(Player player, Location location)
+	private void webber(Player player)
 	{
-		int r = 3;
-		World world = location.getWorld();
-		int px = location.getBlockX();
-		int py = location.getBlockY();
-		int pz = location.getBlockZ();
+		int r = 2;
+		int px = player.getLocation().getBlockX();
+		int py = player.getLocation().getBlockY();
+		int pz = player.getLocation().getBlockZ();
 
 		for (int x = -r; x <= r; x++)
 			for (int y = -r; y <= r; y++)
@@ -1129,12 +1095,36 @@ public class FloorArena implements Listener {
 					{
 						continue;
 					}
-					if (world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.WEB))
+					if (player.getWorld().getBlockAt(xpos, ypos, zpos).getType().equals(Material.AIR) && arenaBlocks.isInside(player.getWorld().getBlockAt(xpos, ypos, zpos).getLocation()))
 					{
-						player.playSound(location, Sound.DIG_STONE, 1, 1);
-						world.getBlockAt(xpos, ypos, zpos).setType(Material.AIR);
+						player.getWorld().getBlockAt(xpos, ypos, zpos).setType(Material.WEB);
 					}
 				}
 
+	}
+
+	private ItemStack[] getContents(HashMap<ItemStack, Integer> hash)
+	{
+		ItemStack[] newStack = new ItemStack[hash.keySet().size()];
+
+		int count = 0;
+		for (ItemStack stack : hash.keySet())
+		{
+			newStack[count] = new ItemStack(stack);
+			newStack[count].setAmount(hash.get(stack));
+			if (newStack[count].getAmount() == 0)
+				newStack[count] = null;
+			count++;
+		}
+		
+		List<ItemStack> stacks = new ArrayList<ItemStack>();
+		for (ItemStack item : newStack)
+		{
+			if (item != null)
+				stacks.add(item);
+		}
+		
+		newStack = stacks.toArray(new ItemStack[stacks.size()]);
+		return newStack;
 	}
 }
