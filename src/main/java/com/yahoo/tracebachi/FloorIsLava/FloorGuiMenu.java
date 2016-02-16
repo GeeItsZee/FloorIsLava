@@ -64,9 +64,8 @@ public class FloorGuiMenu implements Listener {
 
 		meta = kitItem.getItemMeta();
 		meta.setLore(Arrays.asList(ChatColor.WHITE + "Click to edit your loadout", 
-					ChatColor.GRAY + "Current Loadout: " + ChatColor.GREEN + (stacks == null ? "Default" : stacks.equals(arena.getDefaultLoadout()) ? "Default" : "Custom"),
 					"",
-					ChatColor.AQUA + "-Loadout-",
+					ChatColor.AQUA + "-Current Loadout-",
 					ChatColor.GRAY + "Throwing TNT: " + (stacks == null ? "1" : stacks.get(arena.getDefaultLoadout().get(0))),
 					ChatColor.GRAY + "Player Launcher: " + (stacks == null ? "1" : stacks.get(arena.getDefaultLoadout().get(1))),
 					ChatColor.GRAY + "Webber: " + (stacks == null ? "1" : stacks.get(arena.getDefaultLoadout().get(2))),

@@ -285,7 +285,11 @@ public class FloorArena implements Listener {
 					contents = getContents(loadouts.get(player));
 				}
 
-				player.getInventory().setArmorContents(new ItemStack[] {});
+				player.getInventory().setHelmet(null);
+				player.getInventory().setChestplate(null);
+				player.getInventory().setLeggings(null);
+				player.getInventory().setBoots(null);
+
 				player.getInventory().setContents(contents);
 				player.teleport(arenaBlocks.getRandomLocationInside(world));
 			}
@@ -692,6 +696,12 @@ public class FloorArena implements Listener {
 						player.sendMessage(BAD + "You can't use a boost yet!");
 					else if (canUseBoost.get(player))
 					{
+						if (getWebsAroundPlayer(player, 1) > 0)
+						{
+							player.sendMessage(BAD + "You can not use a boost while near webs!");
+							player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+							return;
+						}
 						if (heldItem.getAmount() == 1)
 						{
 							player.getInventory().remove(heldItem);
@@ -734,6 +744,12 @@ public class FloorArena implements Listener {
 						{
 							if (player.getLocation().distance(looking.getLocation()) <= 6)
 							{
+								if (getWebsAroundPlayer(looking, 1) > 0)
+								{
+									player.sendMessage(BAD + "You can not launch players that are in a web!");
+									player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+									return;
+								}
 								if (heldItem.getAmount() == 1)
 								{
 									player.getInventory().remove(heldItem);
@@ -827,7 +843,7 @@ public class FloorArena implements Listener {
 								{
 									heldItem.setAmount(heldItem.getAmount() - 1);
 								}
-								webber(looking);
+								webPlayer(looking, true, 2);
 								canUseWebber.put(player, false);
 								msSinceLastDeWebbing.put(player, System.currentTimeMillis());
 								webUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
@@ -1073,9 +1089,9 @@ public class FloorArena implements Listener {
 		return target;
 	}
 
-	private void webber(Player player)
+	private void webPlayer(Player player, boolean shouldWeb, int radius)
 	{
-		int r = 2;
+		int r = radius;
 		int px = player.getLocation().getBlockX();
 		int py = player.getLocation().getBlockY();
 		int pz = player.getLocation().getBlockZ();
@@ -1097,10 +1113,43 @@ public class FloorArena implements Listener {
 					}
 					if (player.getWorld().getBlockAt(xpos, ypos, zpos).getType().equals(Material.AIR) && arenaBlocks.isInside(player.getWorld().getBlockAt(xpos, ypos, zpos).getLocation()))
 					{
-						player.getWorld().getBlockAt(xpos, ypos, zpos).setType(Material.WEB);
+						if (shouldWeb)
+						{
+							player.getWorld().getBlockAt(xpos, ypos, zpos).setType(Material.WEB);
+						}
 					}
 				}
+	}
+	
+	private int getWebsAroundPlayer(Player player, int radius)
+	{
+		int r = radius;
+		int count = 0;
+		int px = player.getLocation().getBlockX();
+		int py = player.getLocation().getBlockY();
+		int pz = player.getLocation().getBlockZ();
 
+		for (int x = -r; x <= r; x++)
+			for (int y = -r; y <= r; y++)
+				for (int z = -r; z <= r; z++)
+				{
+					if (x * x + y * y + z * z > r * r)
+					{
+						continue;
+					}
+					int xpos = px + x;
+					int ypos = py + y;
+					int zpos = pz + z;
+					if (ypos > 127 || ypos < 0)
+					{
+						continue;
+					}
+					if (player.getWorld().getBlockAt(xpos, ypos, zpos).getType().equals(Material.WEB) && arenaBlocks.isInside(player.getWorld().getBlockAt(xpos, ypos, zpos).getLocation()))
+					{
+						count++;
+					}
+				}
+		return count;
 	}
 
 	private ItemStack[] getContents(HashMap<ItemStack, Integer> hash)
@@ -1116,14 +1165,14 @@ public class FloorArena implements Listener {
 				newStack[count] = null;
 			count++;
 		}
-		
+
 		List<ItemStack> stacks = new ArrayList<ItemStack>();
 		for (ItemStack item : newStack)
 		{
 			if (item != null)
 				stacks.add(item);
 		}
-		
+
 		newStack = stacks.toArray(new ItemStack[stacks.size()]);
 		return newStack;
 	}

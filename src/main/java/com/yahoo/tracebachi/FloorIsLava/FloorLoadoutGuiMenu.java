@@ -165,7 +165,7 @@ public class FloorLoadoutGuiMenu implements Listener {
 		}
 		if (event.getClick().equals(ClickType.LEFT))
 		{
-			if (points == 0)
+			if (clickedItem != null && points == 0)
 			{
 				player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
 				return;
