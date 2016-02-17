@@ -95,18 +95,18 @@ public class FloorArena implements Listener {
 	private Location watchLocation;
 
 	private HashMap<String, PlayerState> playing = new HashMap<>();
-	private HashMap<Player, HashMap<ItemStack, Integer>> loadouts = new HashMap<>();
-	private HashMap<Player, Integer> loadoutPoints = new HashMap<>();
-	private HashMap<Player, Boolean> canUseTnt = new HashMap<>();
-	private HashMap<Player, Boolean> canUseHook = new HashMap<>();
-	private HashMap<Player, Boolean> canUseWebber = new HashMap<>();
-	private HashMap<Player, Boolean> canUseInvis = new HashMap<>();
-	private HashMap<Player, Boolean> canUseBoost = new HashMap<>();
-	private HashMap<Player, Long> msSinceLastTNTThrow = new HashMap<>();
-	private HashMap<Player, Long> msSinceLastHookUse = new HashMap<>();
-	private HashMap<Player, Long> msSinceLastDeWebbing = new HashMap<>();
-	private HashMap<Player, Long> msSinceLastInvisUse = new HashMap<>();
-	private HashMap<Player, Long> msSinceLastBoostUse = new HashMap<>();
+	private HashMap<String, HashMap<ItemStack, Integer>> loadouts = new HashMap<>();
+	private HashMap<String, Integer> loadoutPoints = new HashMap<>();
+	private HashMap<String, Boolean> canUseTnt = new HashMap<>();
+	private HashMap<String, Boolean> canUseHook = new HashMap<>();
+	private HashMap<String, Boolean> canUseWebber = new HashMap<>();
+	private HashMap<String, Boolean> canUseInvis = new HashMap<>();
+	private HashMap<String, Boolean> canUseBoost = new HashMap<>();
+	private HashMap<String, Long> msSinceLastTNTThrow = new HashMap<>();
+	private HashMap<String, Long> msSinceLastHookUse = new HashMap<>();
+	private HashMap<String, Long> msSinceLastWebbing = new HashMap<>();
+	private HashMap<String, Long> msSinceLastInvisUse = new HashMap<>();
+	private HashMap<String, Long> msSinceLastBoostUse = new HashMap<>();
 	private ArrayList<String> watching = new ArrayList<>();
 
 	private int minimumPlayers;
@@ -181,7 +181,7 @@ public class FloorArena implements Listener {
 		if (response.transactionSuccess())
 		{
 			wager += amount;
-			broadcast(GOOD + "+$" + amount + " by " + name + " ( = $" + wager + " )");
+			broadcast(GOOD + "+$" + amount + " by " + name + " ( = $" + wager + " )", null);
 
 			return GOOD + "You added $" + amount + " to FloorIsLava ( = $" + wager + " )";
 		}
@@ -212,7 +212,7 @@ public class FloorArena implements Listener {
 		playing.put(playerName, null);
 		watching.add(playerName);
 
-		broadcast(GOOD + playerName + " has joined.");
+		broadcast(GOOD + playerName + " has joined.", new String[] { playerName });
 		resetCoundown();
 		return GOOD + "You have joined FloorIsLava.";
 	}
@@ -220,6 +220,9 @@ public class FloorArena implements Listener {
 	public String remove(Player player)
 	{
 		String name = player.getName();
+		if (!playing.containsKey(name) && !watching.contains(name))
+			return BAD + "You are not part of FloorIsLava.";
+
 		PlayerState state = playing.remove(name);
 		watching.remove(name);
 
@@ -228,6 +231,7 @@ public class FloorArena implements Listener {
 			state.restoreInventory(player);
 			state.restoreLocation(player);
 			state.restoreGameMode(player);
+			broadcast(BAD + name + " has left.", null);
 
 			if (watching.size() < minimumPlayers)
 			{
@@ -238,7 +242,19 @@ public class FloorArena implements Listener {
 		}
 		else
 		{
-			return BAD + "You are not part of FloorIsLava.";
+			if (started)
+			{
+				return BAD + "You are not part of FloorIsLava.";
+			}
+			else
+			{
+				if (watching.size() < minimumPlayers)
+				{
+					broadcast(BAD + name + " has left.", null);
+					resetCoundown();
+				}
+				return GOOD + "You have left FloorIsLava.";
+			}
 		}
 	}
 
@@ -275,14 +291,14 @@ public class FloorArena implements Listener {
 					Bukkit.getServer().dispatchCommand(player, command);
 				}
 				ItemStack[] contents;
-				if (loadouts.get(player) == null)
+				if (loadouts.get(player.getName()) == null)
 				{
 					ItemStack[] temp = { tnt, hook, web, invis, boost };
 					contents = temp;
 				}
 				else
 				{
-					contents = getContents(loadouts.get(player));
+					contents = getContents(loadouts.get(player.getName()));
 				}
 
 				player.getInventory().setHelmet(null);
@@ -308,13 +324,12 @@ public class FloorArena implements Listener {
 			{
 				for (String name : playing.keySet())
 				{
-					Player player = Bukkit.getPlayer(name);
-					canUseTnt.put(player, true);
-					canUseHook.put(player, true);
-					canUseWebber.put(player, true);
-					canUseInvis.put(player, true);
-					canUseBoost.put(player, true);
-					player.sendMessage(GOOD + "Kit items are now enabled!");
+					canUseTnt.put(name, true);
+					canUseHook.put(name, true);
+					canUseWebber.put(name, true);
+					canUseInvis.put(name, true);
+					canUseBoost.put(name, true);
+					Bukkit.getPlayerExact(name).sendMessage(GOOD + "Kit items are now enabled!");
 				}
 			}
 		}, kitEnableDelay * ticksPerCheck);
@@ -344,7 +359,7 @@ public class FloorArena implements Listener {
 				plugin.getEconomy().bankDeposit(entry.getKey(), baseReward);
 				player.sendMessage(GOOD + "Thanks for playing! Here's $" + baseReward);
 
-				broadcast(BAD + entry.getKey() + " fell! " + playing.size() + '/' + watching.size() + " left!");
+				broadcast(BAD + entry.getKey() + " fell! " + playing.size() + '/' + watching.size() + " left!", null);
 			}
 		}
 
@@ -377,7 +392,7 @@ public class FloorArena implements Listener {
 				plugin.getLogger().info(entry.getKey() + " won a round. Amount = " + (winnerReward + wager));
 				wager = 0;
 
-				broadcast(GOOD + entry.getKey() + " won that round!");
+				broadcast(GOOD + entry.getKey() + " won that round!", null);
 
 				Firework f = (Firework) player.getWorld().spawn(player.getLocation().add(0, 1, 0), Firework.class);
 
@@ -400,7 +415,7 @@ public class FloorArena implements Listener {
 		}
 		else
 		{
-			broadcast(GOOD + "Starting in " + countdown);
+			broadcast(GOOD + "Starting in " + countdown, null);
 			countdown--;
 		}
 	}
@@ -433,12 +448,12 @@ public class FloorArena implements Listener {
 		return watchLocation;
 	}
 
-	public HashMap<Player, HashMap<ItemStack, Integer>> getLoadouts()
+	public HashMap<String, HashMap<ItemStack, Integer>> getLoadouts()
 	{
 		return loadouts;
 	}
 
-	public HashMap<Player, Integer> getLoadoutPoints()
+	public HashMap<String, Integer> getLoadoutPoints()
 	{
 		return loadoutPoints;
 	}
@@ -565,11 +580,11 @@ public class FloorArena implements Listener {
 				ItemStack heldItem = event.getItem();
 				if (heldItem != null && heldItem.getType().equals(Material.TNT))
 				{
-					if (canUseTnt.get(player) == null)
+					if (canUseTnt.get(playerName) == null)
 						player.sendMessage(BAD + "You can not place tnt yet!");
 					else if (arenaBlocks.isInside(clicked))
 					{
-						if (canUseTnt.get(player))
+						if (canUseTnt.get(playerName))
 						{
 							if (heldItem.getAmount() == 1)
 							{
@@ -580,29 +595,28 @@ public class FloorArena implements Listener {
 								heldItem.setAmount(heldItem.getAmount() - 1);
 							}
 							Bukkit.getWorld(worldName).spawn(clicked.add(0, 1, 0), TNTPrimed.class);
-							canUseTnt.put(player, false);
-							msSinceLastTNTThrow.put(player, System.currentTimeMillis());
+							canUseTnt.put(playerName, false);
+							msSinceLastTNTThrow.put(playerName, System.currentTimeMillis());
 							tntUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
-								Player p = player;
 
 								@Override
 								public void run()
 								{
-									canUseTnt.put(p, true);
+									canUseTnt.put(playerName, true);
 								}
 							}, tntUseDelay * ticksPerCheck);
 						}
-						else if (!canUseTnt.get(player))
+						else if (!canUseTnt.get(playerName))
 						{
-							player.sendMessage(BAD + "You can not place tnt for another " + (((long) tntUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastTNTThrow.get(player)) / 1000)) + " seconds!");
+							player.sendMessage(BAD + "You can not place tnt for another " + (((long) tntUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastTNTThrow.get(playerName)) / 1000)) + " seconds!");
 						}
 					}
 				}
 				else if (heldItem != null && heldItem.getType().equals(Material.BLAZE_ROD))
 				{
-					if (canUseInvis.get(player) == null)
+					if (canUseInvis.get(playerName) == null)
 						player.sendMessage(BAD + "You can not go invisible yet!");
-					else if (canUseInvis.get(player))
+					else if (canUseInvis.get(playerName))
 					{
 						if (heldItem.getAmount() == 1)
 						{
@@ -617,14 +631,14 @@ public class FloorArena implements Listener {
 							p.hidePlayer(player);
 						}
 						player.sendMessage(GOOD + "You are now invisible!");
-						canUseInvis.put(player, false);
-						msSinceLastInvisUse.put(player, System.currentTimeMillis());
+						canUseInvis.put(playerName, false);
+						msSinceLastInvisUse.put(playerName, System.currentTimeMillis());
 						invisUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 
 							@Override
 							public void run()
 							{
-								canUseInvis.put(player, true);
+								canUseInvis.put(playerName, true);
 								for (Player p : Bukkit.getOnlinePlayers())
 								{
 									p.showPlayer(player);
@@ -633,9 +647,9 @@ public class FloorArena implements Listener {
 							}
 						}, invisUseDelay * ticksPerCheck);
 					}
-					else if (!canUseInvis.get(player))
+					else if (!canUseInvis.get(playerName))
 					{
-						player.sendMessage(BAD + "You can not go invisible for another " + (((long) invisUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastInvisUse.get(player)) / 1000)) + " seconds!");
+						player.sendMessage(BAD + "You can not go invisible for another " + (((long) invisUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastInvisUse.get(playerName)) / 1000)) + " seconds!");
 					}
 				}
 			}
@@ -656,10 +670,10 @@ public class FloorArena implements Listener {
 
 				if (heldItem != null && heldItem.getType().equals(Material.TNT))
 				{
-					if (canUseTnt.get(player) == null)
+					if (canUseTnt.get(playerName) == null)
 						player.sendMessage(BAD + "You can not throw tnt yet!");
 
-					else if (canUseTnt.get(player))
+					else if (canUseTnt.get(playerName))
 					{
 						if (heldItem.getAmount() == 1)
 						{
@@ -673,28 +687,27 @@ public class FloorArena implements Listener {
 						Vector vector = player.getLocation().getDirection();
 						vector.add(new Vector(0.0, 0.15, 0.0));
 						tnt.setVelocity(vector);
-						canUseTnt.put(player, false);
-						msSinceLastTNTThrow.put(player, System.currentTimeMillis());
+						canUseTnt.put(playerName, false);
+						msSinceLastTNTThrow.put(playerName, System.currentTimeMillis());
 						tntUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
-							Player p = player;
 
 							@Override
 							public void run()
 							{
-								canUseTnt.put(p, true);
+								canUseTnt.put(playerName, true);
 							}
 						}, tntUseDelay * ticksPerCheck);
 					}
-					else if (!canUseTnt.get(player))
+					else if (!canUseTnt.get(playerName))
 					{
-						player.sendMessage(BAD + "You can not throw tnt for another " + (((long) tntUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastTNTThrow.get(player)) / 1000)) + " seconds!");
+						player.sendMessage(BAD + "You can not throw tnt for another " + (((long) tntUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastTNTThrow.get(playerName)) / 1000)) + " seconds!");
 					}
 				}
 				else if (heldItem != null && heldItem.getType().equals(Material.FEATHER))
 				{
-					if (canUseBoost.get(player) == null)
+					if (canUseBoost.get(playerName) == null)
 						player.sendMessage(BAD + "You can't use a boost yet!");
-					else if (canUseBoost.get(player))
+					else if (canUseBoost.get(playerName))
 					{
 						if (getWebsAroundPlayer(player, 1) > 0)
 						{
@@ -717,27 +730,27 @@ public class FloorArena implements Listener {
 						vector.multiply(2);
 						player.setVelocity(vector);
 						player.playSound(player.getLocation(), Sound.GHAST_FIREBALL, 1f, 1f);
-						canUseBoost.put(player, false);
-						msSinceLastBoostUse.put(player, System.currentTimeMillis());
+						canUseBoost.put(playerName, false);
+						msSinceLastBoostUse.put(playerName, System.currentTimeMillis());
 						boostUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 
 							@Override
 							public void run()
 							{
-								canUseBoost.put(player, true);
+								canUseBoost.put(playerName, true);
 							}
 						}, boostUseDelay * ticksPerCheck);
 					}
-					else if (!canUseBoost.get(player))
+					else if (!canUseBoost.get(playerName))
 					{
-						player.sendMessage(BAD + "You can not use a boost for another " + (((long) boostUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastBoostUse.get(player)) / 1000)) + " seconds!");
+						player.sendMessage(BAD + "You can not use a boost for another " + (((long) boostUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastBoostUse.get(playerName)) / 1000)) + " seconds!");
 					}
 				}
 				else if (heldItem != null && heldItem.getType().equals(Material.TRIPWIRE_HOOK))
 				{
-					if (canUseHook.get(player) == null)
+					if (canUseHook.get(playerName) == null)
 						player.sendMessage(BAD + "You can't launch players yet!");
-					else if (canUseHook.get(player))
+					else if (canUseHook.get(playerName))
 					{
 						Player looking = getTarget(player, Bukkit.getOnlinePlayers());
 						if (looking != null && playing.containsKey(looking.getName()))
@@ -765,30 +778,30 @@ public class FloorArena implements Listener {
 								vector.multiply(2);
 								looking.setVelocity(vector);
 								player.playSound(player.getLocation(), Sound.HURT_FLESH, 1f, 1f);
-								canUseHook.put(player, false);
-								msSinceLastHookUse.put(player, System.currentTimeMillis());
+								canUseHook.put(playerName, false);
+								msSinceLastHookUse.put(playerName, System.currentTimeMillis());
 								hookUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 
 									@Override
 									public void run()
 									{
-										canUseHook.put(player, true);
+										canUseHook.put(playerName, true);
 									}
 								}, hookUseDelay * ticksPerCheck);
 							}
 						}
 					}
-					else if (!canUseHook.get(player))
+					else if (!canUseHook.get(playerName))
 					{
-						player.sendMessage(BAD + "You can not launch players for another " + (((long) hookUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastHookUse.get(player)) / 1000)) + " seconds!");
+						player.sendMessage(BAD + "You can not launch players for another " + (((long) hookUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastHookUse.get(playerName)) / 1000)) + " seconds!");
 					}
 
 				}
 				else if (heldItem != null && heldItem.getType().equals(Material.BLAZE_ROD))
 				{
-					if (canUseInvis.get(player) == null)
+					if (canUseInvis.get(playerName) == null)
 						player.sendMessage(BAD + "You can not go invisible yet!");
-					else if (canUseInvis.get(player))
+					else if (canUseInvis.get(playerName))
 					{
 						if (heldItem.getAmount() == 1)
 						{
@@ -803,14 +816,14 @@ public class FloorArena implements Listener {
 							p.hidePlayer(player);
 						}
 						player.sendMessage(GOOD + "You are now invisible!");
-						canUseInvis.put(player, false);
-						msSinceLastInvisUse.put(player, System.currentTimeMillis());
+						canUseInvis.put(playerName, false);
+						msSinceLastInvisUse.put(playerName, System.currentTimeMillis());
 						invisUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 
 							@Override
 							public void run()
 							{
-								canUseInvis.put(player, true);
+								canUseInvis.put(playerName, true);
 								for (Player p : Bukkit.getOnlinePlayers())
 								{
 									p.showPlayer(player);
@@ -819,16 +832,16 @@ public class FloorArena implements Listener {
 							}
 						}, invisUseDelay * ticksPerCheck);
 					}
-					else if (!canUseInvis.get(player))
+					else if (!canUseInvis.get(playerName))
 					{
-						player.sendMessage(BAD + "You can not go invisible for another " + (((long) invisUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastInvisUse.get(player)) / 1000)) + " seconds!");
+						player.sendMessage(BAD + "You can not go invisible for another " + (((long) invisUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastInvisUse.get(playerName)) / 1000)) + " seconds!");
 					}
 				}
 				else if (heldItem != null && heldItem.getType().equals(Material.WEB))
 				{
-					if (canUseWebber.get(player) == null)
+					if (canUseWebber.get(playerName) == null)
 						player.sendMessage(BAD + "You can not use the webber yet!");
-					else if (canUseWebber.get(player))
+					else if (canUseWebber.get(playerName))
 					{
 						Player looking = getTarget(player, Bukkit.getOnlinePlayers());
 						if (looking != null && playing.containsKey(looking.getName()))
@@ -844,22 +857,22 @@ public class FloorArena implements Listener {
 									heldItem.setAmount(heldItem.getAmount() - 1);
 								}
 								webPlayer(looking, true, 2);
-								canUseWebber.put(player, false);
-								msSinceLastDeWebbing.put(player, System.currentTimeMillis());
+								canUseWebber.put(playerName, false);
+								msSinceLastWebbing.put(playerName, System.currentTimeMillis());
 								webUseTask = Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
 
 									@Override
 									public void run()
 									{
-										canUseWebber.put(player, true);
+										canUseWebber.put(playerName, true);
 									}
 								}, deWebUseDelay * ticksPerCheck);
 							}
 						}
 					}
-					else if (!canUseWebber.get(player))
+					else if (!canUseWebber.get(playerName))
 					{
-						player.sendMessage(BAD + "You can not use the webber for another " + (((long) deWebUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastDeWebbing.get(player)) / 1000)) + " seconds!");
+						player.sendMessage(BAD + "You can not use the webber for another " + (((long) deWebUseDelay / (20 / ticksPerCheck)) - ((System.currentTimeMillis() - msSinceLastWebbing.get(playerName)) / 1000)) + " seconds!");
 					}
 				}
 			}
@@ -987,7 +1000,7 @@ public class FloorArena implements Listener {
 		}
 		else
 		{
-			broadcast(BAD + "Too few players to start.");
+			broadcast(BAD + "Too few players to start.", null);
 		}
 	}
 
@@ -999,11 +1012,11 @@ public class FloorArena implements Listener {
 		playing.clear();
 		watching.clear();
 
-		for (Player player : canUseInvis.keySet())
+		for (String player : canUseInvis.keySet())
 		{
 			for (Player p : Bukkit.getOnlinePlayers())
 			{
-				p.showPlayer(player);
+				p.showPlayer(Bukkit.getPlayerExact(player));
 			}
 		}
 
@@ -1059,14 +1072,15 @@ public class FloorArena implements Listener {
 		started = false;
 	}
 
-	private void broadcast(String message)
+	private void broadcast(String message, String[] exclude)
 	{
 		for (String name : watching)
 		{
 			Player target = Bukkit.getPlayer(name);
 			if (target != null && target.isOnline())
 			{
-				target.sendMessage(message);
+				if (exclude == null || !Arrays.asList(exclude).contains(name))
+					target.sendMessage(message);
 			}
 		}
 	}
@@ -1120,7 +1134,7 @@ public class FloorArena implements Listener {
 					}
 				}
 	}
-	
+
 	private int getWebsAroundPlayer(Player player, int radius)
 	{
 		int r = radius;

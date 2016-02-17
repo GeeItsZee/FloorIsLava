@@ -16,13 +16,14 @@
  */
 package com.yahoo.tracebachi.FloorIsLava.Commands;
 
-import com.yahoo.tracebachi.FloorIsLava.FloorArena;
-import com.yahoo.tracebachi.FloorIsLava.FloorGuiMenu;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import com.yahoo.tracebachi.FloorIsLava.FloorArena;
+import com.yahoo.tracebachi.FloorIsLava.FloorGuiMenu;
 
 /**
  * Created by Trace Bachi (BigBossZee) on 8/20/2015.
