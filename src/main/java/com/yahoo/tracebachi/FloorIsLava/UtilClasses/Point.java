@@ -16,6 +16,8 @@
  */
 package com.yahoo.tracebachi.FloorIsLava.UtilClasses;
 
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 
 /**
@@ -75,6 +77,11 @@ public class Point
     public double pitch()
     {
         return pitch;
+    }
+
+    public Location toLocation(World world)
+    {
+        return new Location(world, x + 0.5, y, z + 0.5, (float) yaw, (float) pitch);
     }
 
     @Override

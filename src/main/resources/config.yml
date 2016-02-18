@@ -13,26 +13,20 @@ CountdownInSeconds: 5
 # Arena's world
 WorldName: world
 
-# 'x' FloorIsLava ticks for special items to be enabled after using it
-UseDelay: 12
+# Delay in milliseconds between TNT uses
+ThrowingTNTUseDelay: True
 
-# Enable throwing tnt when players enter the arena
-UseThrowingTNT: True
+# Delay in milliseconds between player launcher uses
+PlayerLauncherUseDelay: True
 
-# 'x' FloorIsLava ticks for throwing tnt to be enabled after the arena starts
-ThrowingTNTEnableDelay: 20
+# Delay in milliseconds between webber uses
+WebberUseDelay: True
 
-# 'x' Blocks below the arena to cancel explosions from throwing tnt
-ThrowingTNTCancelDistance: 0
+# Delay in milliseconds between invisibility rod uses
+RodOfInvisibilityUseDelay: True
 
-# Enable player launcher when players enter the arena
-UsePlayerLauncher: True
-
-# Enable webber when players enter the arena
-UseWebber: True
-
-# Enable rod of invisibility when players enter the arena
-UseRodOfInvisibility: True
+# Delay in milliseconds between boost uses
+BoostUseDelay: True
 
 # PointOne and PointTwo make up the cuboid where players can break blocks
 # Being outside this cuboid will remove players from the arena

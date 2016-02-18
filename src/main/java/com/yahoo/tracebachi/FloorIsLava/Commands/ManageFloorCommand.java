@@ -16,7 +16,7 @@
  */
 package com.yahoo.tracebachi.FloorIsLava.Commands;
 
-import com.yahoo.tracebachi.FloorIsLava.FloorArena;
+import com.yahoo.tracebachi.FloorIsLava.Arena;
 import com.yahoo.tracebachi.FloorIsLava.FloorIsLavaPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -28,9 +28,9 @@ import org.bukkit.command.CommandSender;
 public class ManageFloorCommand implements CommandExecutor
 {
     private final FloorIsLavaPlugin plugin;
-    private final FloorArena arena;
+    private final Arena arena;
 
-    public ManageFloorCommand(FloorIsLavaPlugin plugin, FloorArena arena)
+    public ManageFloorCommand(FloorIsLavaPlugin plugin, Arena arena)
     {
         this.plugin = plugin;
         this.arena = arena;
@@ -41,45 +41,42 @@ public class ManageFloorCommand implements CommandExecutor
     {
         if(!sender.hasPermission("FloorIsLava.Staff"))
         {
-            sender.sendMessage(FloorArena.BAD + "You do not have access to this command!");
+            sender.sendMessage(Arena.BAD + "You do not have access to this command!");
             return true;
         }
 
         if(args.length == 0)
         {
-            sender.sendMessage(FloorArena.BAD + "/mfloor [start, stop, reload, enable, disable]");
+            sender.sendMessage(Arena.BAD + "/mfloor [start, stop, reload, enable, disable]");
             return true;
         }
 
         if(args[0].equalsIgnoreCase("start"))
         {
-            sender.sendMessage(arena.forceStart());
+            arena.forceStart(sender);
         }
         else if(args[0].equalsIgnoreCase("stop"))
         {
-            sender.sendMessage(arena.forceStop());
+            arena.forceStop(sender);
         }
         else if(args[0].equalsIgnoreCase("reload"))
         {
-            arena.forceStop();
+            arena.forceStop(sender);
             plugin.reloadConfig();
             arena.loadConfig(plugin.getConfig());
-            sender.sendMessage(FloorArena.GOOD + "Configuration reloaded.");
+            sender.sendMessage(Arena.GOOD + "Configuration reloaded.");
         }
         else if(args[0].equalsIgnoreCase("enable"))
         {
-            arena.enableArena();
-            sender.sendMessage(FloorArena.GOOD + "FloorIsLava enabled.");
+            arena.enableArena(sender);
         }
         else if(args[0].equalsIgnoreCase("disable"))
         {
-            arena.disableArena();
-            sender.sendMessage(FloorArena.GOOD + "FloorIsLava disabled. " +
-                "Players will not be able to join until renabled.");
+            arena.disableArena(sender);
         }
         else
         {
-            sender.sendMessage(FloorArena.BAD + "/mfloor [start, stop, reload, enable, disable]");
+            sender.sendMessage(Arena.BAD + "/mfloor [start, stop, reload, enable, disable]");
         }
         return true;
     }

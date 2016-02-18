@@ -29,14 +29,14 @@ import java.util.Random;
 /**
  * Created by Trace Bachi (BigBossZee) on 8/20/2015.
  */
-public class FloorArenaBlocks
+public class ArenaBlocks
 {
     private Point upper;
     private Point lower;
     private ArrayList<BlockState> blockStates = new ArrayList<>();
     private Random random = new Random();
 
-    public FloorArenaBlocks(ConfigurationSection alpha, ConfigurationSection beta)
+    public ArenaBlocks(ConfigurationSection alpha, ConfigurationSection beta)
     {
         int alphaX = alpha.getInt("x");
         int alphaY = alpha.getInt("y");
@@ -44,6 +44,7 @@ public class FloorArenaBlocks
         int betaX = beta.getInt("x");
         int betaY = beta.getInt("y");
         int betaZ = beta.getInt("z");
+
         upper = new Point(Math.max(alphaX, betaX),
             Math.max(alphaY, betaY), Math.max(alphaZ, betaZ));
         lower = new Point(Math.min(alphaX, betaX),
@@ -70,6 +71,7 @@ public class FloorArenaBlocks
         {
             state.update(true);
         }
+
         blockStates.clear();
     }
 
@@ -83,22 +85,27 @@ public class FloorArenaBlocks
 
     public boolean isInside(Location loc)
     {
-        if(loc.getBlockY() > upper.y()) return false;
-        if(loc.getBlockY() < lower.y()) return false;
+        return isInside(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+    }
 
-        if(loc.getBlockX() > upper.x()) return false;
-        if(loc.getBlockX() < lower.x()) return false;
+    public boolean isInside(int locX, int locY, int locZ)
+    {
+        if(locY > upper.y()) return false;
+        if(locY < lower.y()) return false;
 
-        if(loc.getBlockZ() > upper.z()) return false;
-        if(loc.getBlockZ() < lower.z()) return false;
+        if(locX > upper.x()) return false;
+        if(locX < lower.x()) return false;
+
+        if(locZ > upper.z()) return false;
+        if(locZ < lower.z()) return false;
         return true;
     }
-    
+
     public boolean isYBlocksBelow(Location loc, int y)
     {
-    	return loc.getBlockY() > lower.y() - y;
+        return loc.getBlockY() > lower.y() - y;
     }
-    
+
     public void degradeBlocks(World world, int amount)
     {
         for(int i = lower.x(); i <= upper.x(); ++i)
