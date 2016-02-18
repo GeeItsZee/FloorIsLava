@@ -1,6 +1,6 @@
 name: FloorIsLava
 main: com.yahoo.tracebachi.FloorIsLava.FloorIsLavaPlugin
-version: 2.1
+version: 2.2
 depend: [Vault]
 commands:
   floor:

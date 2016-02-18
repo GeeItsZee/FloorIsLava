@@ -93,7 +93,12 @@ public class FloorArenaBlocks
         if(loc.getBlockZ() < lower.z()) return false;
         return true;
     }
-
+    
+    public boolean isYBlocksBelow(Location loc, int y)
+    {
+    	return loc.getBlockY() > lower.y() - y;
+    }
+    
     public void degradeBlocks(World world, int amount)
     {
         for(int i = lower.x(); i <= upper.x(); ++i)
