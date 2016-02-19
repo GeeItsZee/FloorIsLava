@@ -14,11 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with FloorIsLava.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.yahoo.tracebachi.FloorIsLava;
+package com.gmail.tracebachi.FloorIsLava;
 
-import com.yahoo.tracebachi.FloorIsLava.UtilClasses.Loadout;
-import com.yahoo.tracebachi.FloorIsLava.UtilClasses.PlayerState;
-import com.yahoo.tracebachi.FloorIsLava.UtilClasses.Point;
+import com.gmail.tracebachi.FloorIsLava.UtilClasses.Loadout;
+import com.gmail.tracebachi.FloorIsLava.UtilClasses.PlayerState;
+import com.gmail.tracebachi.FloorIsLava.UtilClasses.Point;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;

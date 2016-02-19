@@ -1,6 +1,6 @@
-package com.yahoo.tracebachi.FloorIsLava;
+package com.gmail.tracebachi.FloorIsLava;
 
-import com.yahoo.tracebachi.FloorIsLava.UtilClasses.Loadout;
+import com.gmail.tracebachi.FloorIsLava.UtilClasses.Loadout;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

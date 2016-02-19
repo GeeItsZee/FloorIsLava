@@ -1,4 +1,4 @@
-package com.yahoo.tracebachi.FloorIsLava.UtilClasses;
+package com.gmail.tracebachi.FloorIsLava.UtilClasses;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

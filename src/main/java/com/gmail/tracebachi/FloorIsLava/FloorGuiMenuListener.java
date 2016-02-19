@@ -1,6 +1,6 @@
-package com.yahoo.tracebachi.FloorIsLava;
+package com.gmail.tracebachi.FloorIsLava;
 
-import com.yahoo.tracebachi.FloorIsLava.UtilClasses.Loadout;
+import com.gmail.tracebachi.FloorIsLava.UtilClasses.Loadout;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

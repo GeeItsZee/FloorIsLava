@@ -14,10 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with FloorIsLava.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.yahoo.tracebachi.FloorIsLava.Commands;
+package com.gmail.tracebachi.FloorIsLava.Commands;
 
-import com.yahoo.tracebachi.FloorIsLava.Arena;
-import com.yahoo.tracebachi.FloorIsLava.FloorGuiMenu;
+import com.gmail.tracebachi.FloorIsLava.Arena;
+import com.gmail.tracebachi.FloorIsLava.FloorGuiMenu;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
