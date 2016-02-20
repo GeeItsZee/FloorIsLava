@@ -14,19 +14,19 @@ CountdownInSeconds: 5
 WorldName: world
 
 # Delay in milliseconds between TNT uses
-ThrowingTNTUseDelay: True
+ThrowingTNTUseDelay: 5000
 
 # Delay in milliseconds between player launcher uses
-PlayerLauncherUseDelay: True
+PlayerLauncherUseDelay: 5000
 
 # Delay in milliseconds between webber uses
-WebberUseDelay: True
+WebberUseDelay: 5000
 
 # Delay in milliseconds between invisibility rod uses
-RodOfInvisibilityUseDelay: True
+RodOfInvisibilityUseDelay: 5000
 
 # Delay in milliseconds between boost uses
-BoostUseDelay: True
+BoostUseDelay: 5000
 
 # PointOne and PointTwo make up the cuboid where players can break blocks
 # Being outside this cuboid will remove players from the arena
