@@ -496,7 +496,6 @@ public class Arena implements Listener
 
         if(heldItem.getType().equals(Material.TNT))
         {
-            Location clicked = event.getClickedBlock().getLocation();
             Long endOfDelayTime = tntUseDelayMap.getOrDefault(playerName, 0L);
 
             if(System.currentTimeMillis() > endOfDelayTime)
@@ -512,12 +511,15 @@ public class Arena implements Listener
 
                 if(event.getAction() == Action.RIGHT_CLICK_BLOCK)
                 {
-                    Bukkit.getWorld(worldName).spawn(clicked.add(0, 1, 0), TNTPrimed.class);
+                    Location location = event.getClickedBlock().getLocation();
+                    Bukkit.getWorld(worldName).spawn(location.add(0, 1, 0), TNTPrimed.class);
                 }
                 else if(event.getAction() == Action.RIGHT_CLICK_AIR)
                 {
-                    TNTPrimed tnt = Bukkit.getWorld(worldName).spawn(player.getLocation().add(0, 1, 0), TNTPrimed.class);
+                    Location location = player.getLocation();
+                    TNTPrimed tnt = Bukkit.getWorld(worldName).spawn(location.add(0, 1, 0), TNTPrimed.class);
                     Vector vector = player.getLocation().getDirection();
+
                     vector.add(new Vector(0.0, 0.15, 0.0));
                     tnt.setVelocity(vector);
                 }
@@ -651,14 +653,15 @@ public class Arena implements Listener
                     heldItem.setAmount(heldItem.getAmount() - 1);
                 }
 
-                Location loc = player.getLocation().clone();
-                loc.setPitch(-30f);
+                Location playerLoc = player.getLocation();
+                playerLoc.setPitch(-30f);
 
-                Vector vector = loc.getDirection();
-                vector.add(new Vector(0.0, 0.15, 0.0));
-                vector.multiply(2);
+                Vector playerDir = playerLoc.getDirection();
+                playerDir.add(new Vector(0.0, 0.15, 0.0));
+                playerDir.multiply(2);
 
-                rightClicked.setVelocity(vector);
+                rightClicked.getLocation().setDirection(playerDir);
+                rightClicked.setVelocity(playerDir);
                 player.playSound(player.getLocation(), Sound.HURT_FLESH, 1f, 1f);
 
                 hookUseDelayMap.put(playerName, System.currentTimeMillis() + hookUseDelay);
