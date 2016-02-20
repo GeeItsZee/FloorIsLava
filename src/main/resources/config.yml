@@ -13,8 +13,23 @@ CountdownInSeconds: 5
 # Arena's world
 WorldName: world
 
-# PointOne and PointTwo make up the cuboid where players can break blocks.
-# Being outside this cuboid will remove players from the arena.
+# Delay in milliseconds between TNT uses
+ThrowingTNTUseDelay: 5000
+
+# Delay in milliseconds between player launcher uses
+PlayerLauncherUseDelay: 5000
+
+# Delay in milliseconds between webber uses
+WebberUseDelay: 5000
+
+# Delay in milliseconds between invisibility rod uses
+RodOfInvisibilityUseDelay: 5000
+
+# Delay in milliseconds between boost uses
+BoostUseDelay: 5000
+
+# PointOne and PointTwo make up the cuboid where players can break blocks
+# Being outside this cuboid will remove players from the arena
 PointOne:
   x: 0
   y: 0

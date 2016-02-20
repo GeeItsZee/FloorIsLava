@@ -14,11 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with FloorIsLava.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.yahoo.tracebachi.FloorIsLava;
+package com.gmail.tracebachi.FloorIsLava;
 
-import com.yahoo.tracebachi.FloorIsLava.Commands.FloorCommand;
-import com.yahoo.tracebachi.FloorIsLava.Commands.ManageFloorCommand;
+import com.gmail.tracebachi.FloorIsLava.Commands.ManageFloorCommand;
+import com.gmail.tracebachi.FloorIsLava.Commands.FloorCommand;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -29,8 +30,8 @@ import java.io.File;
  */
 public class FloorIsLavaPlugin extends JavaPlugin
 {
-    private FloorArena arena;
-    private FloorGuiMenu guiMenu;
+    private Arena arena;
+    private FloorGuiMenuListener listener;
     private Economy economy;
 
     @Override
@@ -53,19 +54,24 @@ public class FloorIsLavaPlugin extends JavaPlugin
             .getServicesManager()
             .getRegistration(net.milkbowl.vault.economy.Economy.class);
 
-        if(economyProvider != null)
+        if(economyProvider == null)
+        {
+            getLogger().severe("Economy provider not found! FloorIsLava will not be enabled.");
+            return;
+        }
+        else
         {
             economy = economyProvider.getProvider();
         }
         /*********************************************************************/
 
-        arena = new FloorArena(this);
+        arena = new Arena(this);
         arena.loadConfig(getConfig());
         getServer().getPluginManager().registerEvents(arena, this);
-        guiMenu = new FloorGuiMenu(arena);
-        getServer().getPluginManager().registerEvents(guiMenu, this);
+        listener = new FloorGuiMenuListener(arena);
+        getServer().getPluginManager().registerEvents(listener, this);
 
-        getCommand("floor").setExecutor(new FloorCommand(arena, guiMenu));
+        getCommand("floor").setExecutor(new FloorCommand(arena));
         getCommand("mfloor").setExecutor(new ManageFloorCommand(this, arena));
     }
 
@@ -75,9 +81,9 @@ public class FloorIsLavaPlugin extends JavaPlugin
         getCommand("mfloor").setExecutor(null);
         getCommand("floor").setExecutor(null);
 
-        guiMenu = null;
+        listener = null;
 
-        arena.forceStop();
+        arena.forceStop(Bukkit.getConsoleSender());
         arena = null;
     }
 

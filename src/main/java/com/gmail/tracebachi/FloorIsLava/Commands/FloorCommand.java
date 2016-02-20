@@ -14,10 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with FloorIsLava.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.yahoo.tracebachi.FloorIsLava.Commands;
+package com.gmail.tracebachi.FloorIsLava.Commands;
 
-import com.yahoo.tracebachi.FloorIsLava.FloorArena;
-import com.yahoo.tracebachi.FloorIsLava.FloorGuiMenu;
+import com.gmail.tracebachi.FloorIsLava.Arena;
+import com.gmail.tracebachi.FloorIsLava.FloorGuiMenu;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -32,13 +32,11 @@ public class FloorCommand implements CommandExecutor
     private static final String GOOD = ChatColor.translateAlternateColorCodes('&', "&8[&aFIL&8]&a ");
     private static final String BAD = ChatColor.translateAlternateColorCodes('&', "&8[&cFIL&8]&c ");
 
-    private final FloorArena arena;
-    private final FloorGuiMenu menu;
+    private final Arena arena;
 
-    public FloorCommand(FloorArena arena, FloorGuiMenu menu)
+    public FloorCommand(Arena arena)
     {
         this.arena = arena;
-        this.menu = menu;
     }
 
     @Override
@@ -46,7 +44,7 @@ public class FloorCommand implements CommandExecutor
     {
         if(!(sender instanceof Player))
         {
-            sender.sendMessage(BAD + "This command can only be used by players." );
+            sender.sendMessage(BAD + "This command can only be used by players.");
             return true;
         }
 
@@ -55,33 +53,19 @@ public class FloorCommand implements CommandExecutor
         if(args.length >= 2 && args[0].startsWith("w"))
         {
             Integer amount = parseInt(args[1]);
-            if(amount == null || amount <= 0)
-            {
-                player.sendMessage(BAD + "That is not a valid amount to wager.");
-            }
-            else
-            {
-                player.sendMessage(arena.addWager(amount, player.getName()));
-            }
+
+            arena.addWager(amount, player);
         }
         else if(args.length >= 1 && args[0].startsWith("c"))
         {
-            int playerCount = arena.getWatchingSize();
-            int wager = arena.getWager();
+            String status = arena.hasStarted() ? "started." : "waiting.";
 
-            if(arena.hasStarted())
-            {
-                player.sendMessage(GOOD + "There are " + playerCount +
-                    " players playing for $" + wager + ".");
-            }
-            else
-            {
-                player.sendMessage(GOOD + "There are " + playerCount +
-                    " players waiting to play for $" + wager + ".");
-            }
+            player.sendMessage(GOOD + "There are " + arena.getWatchingSize() + " players " + status);
+            player.sendMessage(GOOD + "Wager: $" + arena.getWager() + "");
         }
         else
         {
+            FloorGuiMenu menu = new FloorGuiMenu(arena);
             menu.showTo(player);
         }
 

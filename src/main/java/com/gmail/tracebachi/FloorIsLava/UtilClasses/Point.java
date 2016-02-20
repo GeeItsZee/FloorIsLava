@@ -14,8 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with FloorIsLava.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.yahoo.tracebachi.FloorIsLava.UtilClasses;
+package com.gmail.tracebachi.FloorIsLava.UtilClasses;
 
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 
 /**
@@ -75,6 +77,11 @@ public class Point
     public double pitch()
     {
         return pitch;
+    }
+
+    public Location toLocation(World world)
+    {
+        return new Location(world, x + 0.5, y, z + 0.5, (float) yaw, (float) pitch);
     }
 
     @Override
