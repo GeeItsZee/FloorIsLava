@@ -123,39 +123,45 @@ public class FloorGuiMenu implements Listener
 
         meta = TNT_ITEM.getItemMeta();
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Throwing TNT ");
-        meta.setLore(Arrays.asList(ChatColor.WHITE + "Throw ignited tnt at players by right clicking it!",
+        meta.setLore(Arrays.asList(
+            ChatColor.WHITE + "Throw ignited tnt at",
+            ChatColor.WHITE + "players by right clicking it!",
             ChatColor.YELLOW + "Left Click: Add",
             ChatColor.YELLOW + "Right Click: Remove"));
         TNT_ITEM.setItemMeta(meta);
 
         meta = HOOK_ITEM.getItemMeta();
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Player Launcher");
-        meta.setLore(Arrays.asList(ChatColor.WHITE + "Launcher players in the air by right clicking them!",
-            ChatColor.GRAY + "Maximum distance from player: 6 blocks",
-            ChatColor.GRAY + "Minimum distance from player: 2 blocks",
+        meta.setLore(Arrays.asList(
+            ChatColor.WHITE + "Launches players in the",
+            ChatColor.WHITE + "air by right clicking them!",
             ChatColor.YELLOW + "Left Click: Add",
             ChatColor.YELLOW + "Right Click: Remove"));
         HOOK_ITEM.setItemMeta(meta);
 
         meta = WEB_ITEM.getItemMeta();
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Webber");
-        meta.setLore(Arrays.asList(ChatColor.WHITE + "Create a box of webs around a player by right clicking them!",
-            ChatColor.GRAY + "Maximum distance from player: 15 blocks",
-            ChatColor.GRAY + "Minimum distance from player: 2 blocks",
+        meta.setLore(Arrays.asList(
+            ChatColor.WHITE + "Create a box of webs around a",
+            ChatColor.WHITE + "player by right clicking them!",
             ChatColor.YELLOW + "Left Click: Add",
             ChatColor.YELLOW + "Right Click: Remove"));
         WEB_ITEM.setItemMeta(meta);
 
         meta = HOOK_ITEM.getItemMeta();
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Rod of Invisibility");
-        meta.setLore(Arrays.asList(ChatColor.WHITE + "Become invisible and sneak up on your opponents!",
+        meta.setLore(Arrays.asList(
+            ChatColor.WHITE + "Become invisible and",
+            ChatColor.WHITE + "sneak up on your opponents!",
             ChatColor.YELLOW + "Left Click: Add",
             ChatColor.YELLOW + "Right Click: Remove"));
         INVIS_ITEM.setItemMeta(meta);
 
         meta = BOOST_ITEM.getItemMeta();
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Boost");
-        meta.setLore(Arrays.asList(ChatColor.WHITE + "Launch yourself in the air to get away from danger!",
+        meta.setLore(Arrays.asList(
+            ChatColor.WHITE + "Launch yourself in the",
+            ChatColor.WHITE + "air to get away from danger!",
             ChatColor.YELLOW + "Left Click: Add",
             ChatColor.YELLOW + "Right Click: Remove"));
         BOOST_ITEM.setItemMeta(meta);
