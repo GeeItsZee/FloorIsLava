@@ -96,26 +96,31 @@ public class FloorGuiMenuListener implements Listener
 
         if(matchesItemStack(FloorGuiMenu.TNT_ITEM, clickedItem))
         {
+            player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
             loadout.tntCount = Math.max(0, loadout.tntCount + change);
             updateLoadoutCounts(loadout, inventory);
         }
         else if(matchesItemStack(FloorGuiMenu.HOOK_ITEM, clickedItem))
         {
+            player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
             loadout.hookCount = Math.max(0, loadout.hookCount + change);
             updateLoadoutCounts(loadout, inventory);
         }
         else if(matchesItemStack(FloorGuiMenu.WEB_ITEM, clickedItem))
         {
+            player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
             loadout.webCount = Math.max(0, loadout.webCount + change);
             updateLoadoutCounts(loadout, inventory);
         }
         else if(matchesItemStack(FloorGuiMenu.INVIS_ITEM, clickedItem))
         {
+            player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
             loadout.invisCount = Math.max(0, loadout.invisCount + change);
             updateLoadoutCounts(loadout, inventory);
         }
         else if(matchesItemStack(FloorGuiMenu.BOOST_ITEM, clickedItem))
         {
+            player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
             loadout.boostCount = Math.max(0, loadout.boostCount + change);
             updateLoadoutCounts(loadout, inventory);
         }

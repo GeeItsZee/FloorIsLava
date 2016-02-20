@@ -510,7 +510,18 @@ public class Arena implements Listener
                     heldItem.setAmount(heldItem.getAmount() - 1);
                 }
 
-                Bukkit.getWorld(worldName).spawn(clicked.add(0, 1, 0), TNTPrimed.class);
+                if(event.getAction() == Action.RIGHT_CLICK_BLOCK)
+                {
+                    Bukkit.getWorld(worldName).spawn(clicked.add(0, 1, 0), TNTPrimed.class);
+                }
+                else if(event.getAction() == Action.RIGHT_CLICK_AIR)
+                {
+                    TNTPrimed tnt = Bukkit.getWorld(worldName).spawn(player.getLocation().add(0, 1, 0), TNTPrimed.class);
+                    Vector vector = player.getLocation().getDirection();
+                    vector.add(new Vector(0.0, 0.15, 0.0));
+                    tnt.setVelocity(vector);
+                }
+
                 tntUseDelayMap.put(playerName, System.currentTimeMillis() + tntUseDelay);
             }
             else
@@ -566,7 +577,7 @@ public class Arena implements Listener
 
             if(System.currentTimeMillis() > endOfDelayTime)
             {
-                if(isPlayerNearWebs(player, 2))
+                if(isPlayerNearWebs(player, 1))
                 {
                     player.sendMessage(BAD + "You can not use a boost while near webs!");
                     player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
@@ -640,7 +651,7 @@ public class Arena implements Listener
                     heldItem.setAmount(heldItem.getAmount() - 1);
                 }
 
-                Location loc = rightClicked.getLocation().clone();
+                Location loc = player.getLocation().clone();
                 loc.setPitch(-30f);
 
                 Vector vector = loc.getDirection();
