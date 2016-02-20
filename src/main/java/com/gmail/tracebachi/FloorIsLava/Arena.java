@@ -491,8 +491,8 @@ public class Arena implements Listener
         }
 
         if(heldItem == null ||
-            event.getAction() != Action.RIGHT_CLICK_AIR ||
-            event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+            (event.getAction() != Action.RIGHT_CLICK_AIR &&
+            event.getAction() != Action.RIGHT_CLICK_BLOCK)) return;
 
         if(heldItem.getType().equals(Material.TNT))
         {
@@ -560,8 +560,7 @@ public class Arena implements Listener
                 player.sendMessage(BAD + "You cannot go invisible yet.");
             }
         }
-        else if(heldItem.getType().equals(Material.FEATHER) &&
-            event.getAction() == Action.RIGHT_CLICK_AIR)
+        else if(heldItem.getType().equals(Material.FEATHER))
         {
             Long endOfDelayTime = boostUseDelayMap.getOrDefault(playerName, 0L);
 
