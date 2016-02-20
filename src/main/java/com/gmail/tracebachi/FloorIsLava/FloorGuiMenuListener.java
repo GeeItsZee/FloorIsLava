@@ -96,33 +96,78 @@ public class FloorGuiMenuListener implements Listener
 
         if(matchesItemStack(FloorGuiMenu.TNT_ITEM, clickedItem))
         {
-            player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            int oldCount = loadout.tntCount;
             loadout.tntCount = Math.max(0, loadout.tntCount + change);
             updateLoadoutCounts(loadout, inventory);
+
+            if(loadout.tntCount != oldCount)
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            }
+            else
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            }
         }
         else if(matchesItemStack(FloorGuiMenu.HOOK_ITEM, clickedItem))
         {
-            player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            int oldCount = loadout.hookCount;
             loadout.hookCount = Math.max(0, loadout.hookCount + change);
             updateLoadoutCounts(loadout, inventory);
+
+            if(loadout.hookCount != oldCount)
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            }
+            else
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            }
         }
         else if(matchesItemStack(FloorGuiMenu.WEB_ITEM, clickedItem))
         {
-            player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            int oldCount = loadout.webCount;
             loadout.webCount = Math.max(0, loadout.webCount + change);
             updateLoadoutCounts(loadout, inventory);
+
+            if(loadout.webCount != oldCount)
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            }
+            else
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            }
         }
         else if(matchesItemStack(FloorGuiMenu.INVIS_ITEM, clickedItem))
         {
-            player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            int oldCount = loadout.invisCount;
             loadout.invisCount = Math.max(0, loadout.invisCount + change);
             updateLoadoutCounts(loadout, inventory);
+
+            if(loadout.invisCount != oldCount)
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            }
+            else
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            }
         }
         else if(matchesItemStack(FloorGuiMenu.BOOST_ITEM, clickedItem))
         {
-            player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            int oldCount = loadout.boostCount;
             loadout.boostCount = Math.max(0, loadout.boostCount + change);
             updateLoadoutCounts(loadout, inventory);
+
+            if(loadout.boostCount != oldCount)
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            }
+            else
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            }
         }
     }
 

@@ -566,6 +566,7 @@ public class Arena implements Listener
                 }, 200);
 
                 player.sendMessage(GOOD + "You are now invisible!");
+                player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1.1f);
                 invisUseDelayMap.put(playerName, System.currentTimeMillis() + invisUseDelay);
             }
             else
