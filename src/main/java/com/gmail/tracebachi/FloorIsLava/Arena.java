@@ -213,6 +213,7 @@ public class Arena implements Listener
                 Loadout loadout = loadoutMap.get(name);
                 PlayerState playerState = new PlayerState();
 
+                player.closeInventory();
                 playerState.save(player);
                 playing.put(entry.getKey(), playerState);
 
