@@ -187,6 +187,7 @@ public class Arena implements Listener
 
         watching.remove(name);
         player.sendMessage(GOOD + "You have left FloorIsLava.");
+        player.setFireTicks(0);
         broadcast(BAD + name + " has left.", null);
     }
 

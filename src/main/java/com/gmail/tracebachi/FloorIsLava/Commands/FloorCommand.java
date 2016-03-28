@@ -63,6 +63,10 @@ public class FloorCommand implements CommandExecutor
             player.sendMessage(GOOD + "There are " + arena.getWatchingSize() + " players " + status);
             player.sendMessage(GOOD + "Wager: $" + arena.getWager() + "");
         }
+        else if(args.length >= 1 && args[0].equalsIgnoreCase("leave"))
+        {
+            arena.remove(player);
+        }
         else
         {
             FloorGuiMenu menu = new FloorGuiMenu(arena);
