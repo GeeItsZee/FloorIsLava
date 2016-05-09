@@ -510,15 +510,16 @@ public class Arena implements Listener
                 if (event.getAction() == Action.RIGHT_CLICK_BLOCK)
                 {
                     Location location = event.getClickedBlock().getLocation();
-                    Bukkit.getWorld(worldName).spawn(location.add(0, 1, 0), TNTPrimed.class);
+                    TNTPrimed tnt = Bukkit.getWorld(worldName).spawn(location.add(0, 1, 0), TNTPrimed.class);
+                    tnt.setMetadata("fil", new FixedMetadataValue(plugin, "fil"));
                 }
                 else if (event.getAction() == Action.RIGHT_CLICK_AIR)
                 {
                     Location location = player.getLocation();
                     TNTPrimed tnt = Bukkit.getWorld(worldName).spawn(location.add(0, 1, 0), TNTPrimed.class);
                     tnt.setMetadata("fil", new FixedMetadataValue(plugin, "fil"));
-                    Vector vector = player.getLocation().getDirection();
 
+                    Vector vector = player.getLocation().getDirection();
                     vector.add(new Vector(0.0, 0.15, 0.0));
                     tnt.setVelocity(vector);
                 }
@@ -751,6 +752,7 @@ public class Arena implements Listener
 
         if (!event.getEntity().hasMetadata("fil"))
         {
+            event.setCancelled(true);
             return;
         }
 
@@ -798,6 +800,7 @@ public class Arena implements Listener
             if (tnt.hasMetadata("fil"))
             {
                 event.setCancelled(true);
+                event.setDamage(0);
             }
         }
     }
