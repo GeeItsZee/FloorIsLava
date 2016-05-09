@@ -945,13 +945,10 @@ public class Arena implements Listener
                         int ypos = py + y;
                         int zpos = pz + z;
 
-                        if(ypos <= 127 && ypos >= 0)
+                        if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.AIR) &&
+                                    arenaBlocks.isInside(xpos, ypos, zpos))
                         {
-                            if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.AIR) &&
-                                        arenaBlocks.isInside(xpos, ypos, zpos))
-                            {
-                                world.getBlockAt(xpos, ypos, zpos).setType(Material.WEB);
-                            }
+                            world.getBlockAt(xpos, ypos, zpos).setType(Material.WEB);
                         }
                     }
                 }
@@ -978,13 +975,10 @@ public class Arena implements Listener
                         int ypos = py + y;
                         int zpos = pz + z;
 
-                        if(ypos <= 127 && ypos >= 0)
+                        if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.WEB) &&
+                                    arenaBlocks.isInside(xpos, ypos, zpos))
                         {
-                            if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.WEB) &&
-                                        arenaBlocks.isInside(xpos, ypos, zpos))
-                            {
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 }
