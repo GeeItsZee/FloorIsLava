@@ -849,7 +849,7 @@ public class Arena implements Listener
     }
 
     /*************************************************************************
-	 * Private Methods
+     * Private Methods
      *************************************************************************/
 
     private void resetCoundown()
@@ -864,7 +864,7 @@ public class Arena implements Listener
         {
             countdown = maxCountdown;
             countdownTask = Bukkit.getScheduler().runTaskTimer(plugin,
-                this::countdownTick, 100, 10);
+                        this::countdownTick, 100, 10);
         }
         else
         {
@@ -948,7 +948,7 @@ public class Arena implements Listener
                         if(ypos <= 127 && ypos >= 0)
                         {
                             if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.AIR) &&
-                                arenaBlocks.isInside(xpos, ypos, zpos))
+                                        arenaBlocks.isInside(xpos, ypos, zpos))
                             {
                                 world.getBlockAt(xpos, ypos, zpos).setType(Material.WEB);
                             }
@@ -981,7 +981,7 @@ public class Arena implements Listener
                         if(ypos <= 127 && ypos >= 0)
                         {
                             if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.WEB) &&
-                                arenaBlocks.isInside(xpos, ypos, zpos))
+                                        arenaBlocks.isInside(xpos, ypos, zpos))
                             {
                                 return true;
                             }
