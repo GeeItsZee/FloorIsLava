@@ -29,6 +29,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -37,6 +38,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
@@ -116,7 +118,7 @@ public class Arena implements Listener
         }
 
         String name = player.getName();
-        EconomyResponse response = plugin.getEconomy().bankWithdraw(name, amount);
+        EconomyResponse response = plugin.getEconomy().withdrawPlayer(name, amount);
 
         if(response.transactionSuccess())
         {
@@ -266,8 +268,9 @@ public class Arena implements Listener
                 state.restoreInventory(player);
                 state.restoreLocation(player);
                 state.restoreGameMode(player);
+                player.setFireTicks(0);
 
-                plugin.getEconomy().bankDeposit(entry.getKey(), baseReward);
+                plugin.getEconomy().depositPlayer(entry.getKey(), baseReward);
                 player.sendMessage(GOOD + "Thanks for playing! Here's $" + baseReward);
 
                 broadcast(BAD + entry.getKey() + " fell! " + playing.size() + '/' + watching.size() + " left!", null);
@@ -294,9 +297,10 @@ public class Arena implements Listener
                 state.restoreInventory(player);
                 state.restoreLocation(player);
                 player.getInventory().addItem(winPrize);
+                player.setFireTicks(0);
                 state.restoreGameMode(player);
 
-                plugin.getEconomy().bankDeposit(entry.getKey(), (winnerReward + wager));
+                plugin.getEconomy().depositPlayer(entry.getKey(), (winnerReward + wager));
 
                 player.sendMessage(GOOD + "You won! Here's a WinTato and $" + (winnerReward + wager));
 
@@ -308,12 +312,12 @@ public class Arena implements Listener
                 Firework firework = player.getWorld().spawn(player.getLocation().add(0, 1, 0), Firework.class);
                 FireworkMeta fireworkMeta = firework.getFireworkMeta();
                 fireworkMeta.addEffects(FireworkEffect.builder()
-                    .flicker(false)
-                    .trail(true)
-                    .with(Type.BALL_LARGE)
-                    .withColor(Color.BLUE)
-                    .withFade(Color.WHITE)
-                    .build());
+                            .flicker(false)
+                            .trail(true)
+                            .with(Type.BALL_LARGE)
+                            .withColor(Color.BLUE)
+                            .withFade(Color.WHITE)
+                            .build());
                 firework.setFireworkMeta(fireworkMeta);
             }
 
@@ -393,8 +397,8 @@ public class Arena implements Listener
         boostUseDelay = config.getInt("BoostUseDelay");
 
         arenaBlocks = new ArenaBlocks(
-            config.getConfigurationSection("PointOne"),
-            config.getConfigurationSection("PointTwo"));
+                    config.getConfigurationSection("PointOne"),
+                    config.getConfigurationSection("PointTwo"));
 
         Point watchPoint = new Point(config.getConfigurationSection("WatchPoint"));
         watchLocation = watchPoint.toLocation(Bukkit.getWorld(worldName));
@@ -462,11 +466,11 @@ public class Arena implements Listener
         forceStop(sender);
         enabled = false;
         sender.sendMessage(Arena.GOOD + "FloorIsLava disabled. " +
-            "Players will not be able to join until renabled.");
+                    "Players will not be able to join until renabled.");
     }
 
     /**************************************************************************
-	 * Arena Event Methods
+     * Arena Event Methods
      *************************************************************************/
 
     @EventHandler
@@ -493,8 +497,8 @@ public class Arena implements Listener
         }
 
         if(heldItem == null ||
-            (event.getAction() != Action.RIGHT_CLICK_AIR &&
-            event.getAction() != Action.RIGHT_CLICK_BLOCK)) return;
+                    (event.getAction() != Action.RIGHT_CLICK_AIR &&
+                    event.getAction() != Action.RIGHT_CLICK_BLOCK)) return;
 
         if(heldItem.getType().equals(Material.TNT))
         {
@@ -514,14 +518,16 @@ public class Arena implements Listener
                 if(event.getAction() == Action.RIGHT_CLICK_BLOCK)
                 {
                     Location location = event.getClickedBlock().getLocation();
-                    Bukkit.getWorld(worldName).spawn(location.add(0, 1, 0), TNTPrimed.class);
+                    TNTPrimed tnt = Bukkit.getWorld(worldName).spawn(location.add(0, 1, 0), TNTPrimed.class);
+                    tnt.setMetadata("fil", new FixedMetadataValue(plugin, "fil"));
                 }
                 else if(event.getAction() == Action.RIGHT_CLICK_AIR)
                 {
                     Location location = player.getLocation();
                     TNTPrimed tnt = Bukkit.getWorld(worldName).spawn(location.add(0, 1, 0), TNTPrimed.class);
-                    Vector vector = player.getLocation().getDirection();
+                    tnt.setMetadata("fil", new FixedMetadataValue(plugin, "fil"));
 
+                    Vector vector = player.getLocation().getDirection();
                     vector.add(new Vector(0.0, 0.15, 0.0));
                     tnt.setVelocity(vector);
                 }
@@ -553,8 +559,7 @@ public class Arena implements Listener
                     other.hidePlayer(player);
                 }
 
-                Bukkit.getScheduler().runTaskLater(plugin, () ->
-                {
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     Player playerToMakeVisible = Bukkit.getPlayer(playerName);
 
                     if(playerToMakeVisible == null) return;
@@ -750,6 +755,12 @@ public class Arena implements Listener
         List<Block> blocksToBeDestroyed = event.blockList();
         ListIterator<Block> iterator = blocksToBeDestroyed.listIterator();
 
+        if(!event.getEntity().hasMetadata("fil"))
+        {
+            event.setCancelled(true);
+            return;
+        }
+
         while(iterator.hasNext())
         {
             Block block = iterator.next();
@@ -764,6 +775,11 @@ public class Arena implements Listener
                 iterator.remove();
             }
         }
+
+        if(!blocksToBeDestroyed.isEmpty())
+        {
+            blocksToBeDestroyed.clear();
+        }
     }
 
     @EventHandler
@@ -776,6 +792,20 @@ public class Arena implements Listener
             if(started && playing.containsKey(name))
             {
                 event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDamageByEntity(EntityDamageByEntityEvent event)
+    {
+        if(event.getEntityType().equals(EntityType.PLAYER) && event.getDamager() instanceof  TNTPrimed)
+        {
+            Entity tnt = event.getDamager();
+            if(tnt.hasMetadata("fil"))
+            {
+                event.setCancelled(true);
+                event.setDamage(0);
             }
         }
     }
@@ -824,7 +854,7 @@ public class Arena implements Listener
     }
 
     /*************************************************************************
-	 * Private Methods
+     * Private Methods
      *************************************************************************/
 
     private void resetCoundown()
@@ -839,7 +869,7 @@ public class Arena implements Listener
         {
             countdown = maxCountdown;
             countdownTask = Bukkit.getScheduler().runTaskTimer(plugin,
-                this::countdownTick, 100, 10);
+                        this::countdownTick, 100, 10);
         }
         else
         {
@@ -920,13 +950,10 @@ public class Arena implements Listener
                         int ypos = py + y;
                         int zpos = pz + z;
 
-                        if(ypos <= 127 && ypos >= 0)
+                        if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.AIR) &&
+                                    arenaBlocks.isInside(xpos, ypos, zpos))
                         {
-                            if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.AIR) &&
-                                arenaBlocks.isInside(xpos, ypos, zpos))
-                            {
-                                world.getBlockAt(xpos, ypos, zpos).setType(Material.WEB);
-                            }
+                            world.getBlockAt(xpos, ypos, zpos).setType(Material.WEB);
                         }
                     }
                 }
@@ -953,13 +980,10 @@ public class Arena implements Listener
                         int ypos = py + y;
                         int zpos = pz + z;
 
-                        if(ypos <= 127 && ypos >= 0)
+                        if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.WEB) &&
+                                    arenaBlocks.isInside(xpos, ypos, zpos))
                         {
-                            if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.WEB) &&
-                                arenaBlocks.isInside(xpos, ypos, zpos))
-                            {
-                                return true;
-                            }
+                            return true;
                         }
                     }
                 }
