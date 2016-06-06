@@ -29,9 +29,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.*;
@@ -72,6 +70,7 @@ public class Arena implements Listener
     private HashMap<String, Long> webUseDelayMap = new HashMap<>();
     private HashMap<String, Long> invisUseDelayMap = new HashMap<>();
     private HashMap<String, Long> boostUseDelayMap = new HashMap<>();
+    private HashMap<String, Long> chikunUseDelayMap = new HashMap<>();
 
     private int minimumPlayers;
     private int baseReward;
@@ -88,6 +87,7 @@ public class Arena implements Listener
     private int deWebUseDelay;
     private int invisUseDelay;
     private int boostUseDelay;
+    private int chikunUseDelay;
 
     private int wager = 0;
     private int countdown = 0;
@@ -395,6 +395,7 @@ public class Arena implements Listener
         deWebUseDelay = config.getInt("WebberUseDelay");
         invisUseDelay = config.getInt("RodOfInvisibilityUseDelay");
         boostUseDelay = config.getInt("BoostUseDelay");
+        chikunUseDelay = config.getInt("ChikunUseDelay");
 
         arenaBlocks = new ArenaBlocks(
                     config.getConfigurationSection("PointOne"),
@@ -621,6 +622,20 @@ public class Arena implements Listener
                 player.sendMessage(BAD + "You cannot boost yet.");
             }
         }
+        else if(heldItem.getType().equals(Material.EGG))
+        {
+            Long endOfDelayTime = chikunUseDelayMap.getOrDefault(playerName, 0L);
+
+            if(System.currentTimeMillis() > endOfDelayTime)
+            {
+                event.setCancelled(false);
+                chikunUseDelayMap.put(playerName, System.currentTimeMillis() + chikunUseDelay);
+            }
+            else
+            {
+                player.sendMessage(BAD + "You cannot throw eggs yet.");
+            }
+        }
     }
 
     @EventHandler
@@ -780,6 +795,45 @@ public class Arena implements Listener
         {
             blocksToBeDestroyed.clear();
         }
+    }
+
+    @EventHandler
+    public void onCreatureSpawn(CreatureSpawnEvent event)
+    {
+        Entity entity = event.getEntity();
+
+        if(!event.getSpawnReason().equals(CreatureSpawnEvent.SpawnReason.EGG)
+                    || !arenaBlocks.isInside(entity.getLocation())) return;
+
+        entity.setCustomNameVisible(true);
+        entity.setCustomName(ChatColor.LIGHT_PURPLE + "\\o/ CHIKUN \\o/");
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            entity.remove();
+        }, 200);
+    }
+
+    @EventHandler
+    public void onPlayerEggThrow(PlayerEggThrowEvent event)
+    {
+        Egg egg = event.getEgg();
+        Location location = egg.getLocation();
+        Player player = event.getPlayer();
+        if(!playing.containsKey(player.getName())) return;
+
+        event.setHatching(true);
+        event.setNumHatches((byte) 4);
+
+        Firework firework = location.getWorld().spawn(location, Firework.class);
+        FireworkMeta fireworkMeta = firework.getFireworkMeta();
+        fireworkMeta.addEffects(FireworkEffect.builder()
+                    .flicker(true)
+                    .trail(false)
+                    .with(Type.STAR)
+                    .withColor(Color.GREEN)
+                    .withFade(Color.WHITE)
+                    .build());
+        firework.setFireworkMeta(fireworkMeta);
     }
 
     @EventHandler
@@ -994,7 +1048,7 @@ public class Arena implements Listener
 
     private ItemStack[] getContentsFromLoadout(Loadout loadout)
     {
-        ItemStack[] contents = new ItemStack[5];
+        ItemStack[] contents = new ItemStack[6];
 
         if(loadout == null)
         {
@@ -1029,6 +1083,12 @@ public class Arena implements Listener
         {
             contents[4] = Loadout.BOOST_ITEM.clone();
             contents[4].setAmount(loadout.boostCount);
+        }
+
+        if(loadout.chikunCount > 0)
+        {
+            contents[5] = Loadout.CHIKUN_ITEM.clone();
+            contents[5].setAmount((loadout.chikunCount));
         }
 
         return contents;

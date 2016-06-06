@@ -66,6 +66,7 @@ public class FloorGuiMenuListener implements Listener
             loadout.webCount = 0;
             loadout.invisCount = 0;
             loadout.boostCount = 0;
+            loadout.chikunCount = 0;
 
             loadoutMap.put(name, loadout);
         }
@@ -185,6 +186,21 @@ public class FloorGuiMenuListener implements Listener
                 player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
             }
         }
+        else if(matchesItemStack(FloorGuiMenu.CHIKUN_ITEM, clickedItem))
+        {
+            int oldCount = loadout.chikunCount;
+            loadout.chikunCount = Math.max(0, loadout.chikunCount + change);
+            updateLoadoutCounts(loadout, inventory);
+
+            if(loadout.chikunCount != oldCount)
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            }
+            else
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            }
+        }
     }
 
     private void updateLoadoutCounts(Loadout loadout, Inventory inventory)
@@ -194,6 +210,7 @@ public class FloorGuiMenuListener implements Listener
         int webAmount = 0;
         int invisAmount = 0;
         int boostAmount = 0;
+        int chikunAmount = 0;
         int pointsAmount = 4;
 
         if(loadout != null)
@@ -203,6 +220,7 @@ public class FloorGuiMenuListener implements Listener
             webAmount = loadout.webCount;
             invisAmount = loadout.invisCount;
             boostAmount = loadout.boostCount;
+            chikunAmount = loadout.chikunCount;
             pointsAmount = 5 - loadout.countSum();
         }
 
@@ -212,13 +230,15 @@ public class FloorGuiMenuListener implements Listener
         FloorGuiMenu.WEB_ITEM.setAmount(webAmount);
         FloorGuiMenu.INVIS_ITEM.setAmount(invisAmount);
         FloorGuiMenu.BOOST_ITEM.setAmount(boostAmount);
+        FloorGuiMenu.CHIKUN_ITEM.setAmount(chikunAmount);
 
         inventory.setItem(13, FloorGuiMenu.POINTS_ITEM);
-        inventory.setItem(20, FloorGuiMenu.TNT_ITEM);
-        inventory.setItem(21, FloorGuiMenu.HOOK_ITEM);
-        inventory.setItem(22, FloorGuiMenu.WEB_ITEM);
+        inventory.setItem(19, FloorGuiMenu.TNT_ITEM);
+        inventory.setItem(20, FloorGuiMenu.HOOK_ITEM);
+        inventory.setItem(21, FloorGuiMenu.WEB_ITEM);
         inventory.setItem(23, FloorGuiMenu.INVIS_ITEM);
         inventory.setItem(24, FloorGuiMenu.BOOST_ITEM);
+        inventory.setItem(25, FloorGuiMenu.CHIKUN_ITEM);
     }
 
     private boolean matchesItemStack(ItemStack original, ItemStack input)

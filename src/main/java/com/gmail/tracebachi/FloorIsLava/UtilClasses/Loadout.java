@@ -31,12 +31,14 @@ public class Loadout
     public static final ItemStack WEB_ITEM = new ItemStack(Material.WEB);
     public static final ItemStack INVIS_ITEM = new ItemStack(Material.BLAZE_ROD);
     public static final ItemStack BOOST_ITEM = new ItemStack(Material.FEATHER);
+    public static final ItemStack CHIKUN_ITEM = new ItemStack(Material.EGG);
 
     static
     {
         ItemMeta tntMeta = TNT_ITEM.getItemMeta();
-        tntMeta.setDisplayName(ChatColor.DARK_RED + "\u2622" + ChatColor.GOLD +
-            " Throwing TNT " + ChatColor.DARK_RED + "\u2622");
+        tntMeta.setDisplayName(ChatColor.DARK_RED + "\u2622"
+                    + ChatColor.GOLD + " Throwing TNT "
+                    + ChatColor.DARK_RED + "\u2622");
         TNT_ITEM.setItemMeta(tntMeta);
 
         ItemMeta hookMeta = HOOK_ITEM.getItemMeta();
@@ -54,6 +56,10 @@ public class Loadout
         ItemMeta boostMeta = BOOST_ITEM.getItemMeta();
         boostMeta.setDisplayName(ChatColor.YELLOW + "Boost");
         BOOST_ITEM.setItemMeta(boostMeta);
+
+        ItemMeta chikunMeta = CHIKUN_ITEM.getItemMeta();
+        chikunMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "Chikun Bomb");
+        CHIKUN_ITEM.setItemMeta(chikunMeta);
     }
 
     public int tntCount;
@@ -61,9 +67,10 @@ public class Loadout
     public int webCount;
     public int invisCount;
     public int boostCount;
+    public int chikunCount;
 
     public int countSum()
     {
-        return tntCount + hookCount + webCount + invisCount + boostCount;
+        return tntCount + hookCount + webCount + invisCount + boostCount + chikunCount;
     }
 }

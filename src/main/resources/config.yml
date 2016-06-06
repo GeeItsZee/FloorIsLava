@@ -28,6 +28,9 @@ RodOfInvisibilityUseDelay: 5000
 # Delay in milliseconds between boost uses
 BoostUseDelay: 5000
 
+# Delay in milliseconds between chikun bomb uses
+ChikunUseDelay: 5000
+
 # PointOne and PointTwo make up the cuboid where players can break blocks
 # Being outside this cuboid will remove players from the arena
 PointOne:

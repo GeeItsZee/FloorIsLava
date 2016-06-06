@@ -45,6 +45,7 @@ public class FloorGuiMenu implements Listener
     public static final ItemStack WEB_ITEM = new ItemStack(Material.WEB);
     public static final ItemStack INVIS_ITEM = new ItemStack(Material.BLAZE_ROD);
     public static final ItemStack BOOST_ITEM = new ItemStack(Material.FEATHER);
+    public static final ItemStack CHIKUN_ITEM = new ItemStack(Material.EGG);
 
     static
     {
@@ -75,6 +76,7 @@ public class FloorGuiMenu implements Listener
         int webAmount = 0;
         int invisAmount = 0;
         int boostAmount = 0;
+        int chikunAmount = 0;
         int pointsAmount = 4;
 
         if(loadout != null)
@@ -84,6 +86,7 @@ public class FloorGuiMenu implements Listener
             webAmount = loadout.webCount;
             invisAmount = loadout.invisCount;
             boostAmount = loadout.boostCount;
+            chikunAmount = loadout.chikunCount;
             pointsAmount = 5 - loadout.countSum();
         }
 
@@ -93,6 +96,7 @@ public class FloorGuiMenu implements Listener
         WEB_ITEM.setAmount(webAmount);
         INVIS_ITEM.setAmount(invisAmount);
         BOOST_ITEM.setAmount(boostAmount);
+        CHIKUN_ITEM.setAmount(chikunAmount);
 
         inventory.setItem(2, JOIN_ITEM);
         inventory.setItem(3, LEAVE_ITEM);
@@ -100,11 +104,12 @@ public class FloorGuiMenu implements Listener
         inventory.setItem(6, HELP_ITEM);
 
         inventory.setItem(13, POINTS_ITEM);
-        inventory.setItem(20, TNT_ITEM);
-        inventory.setItem(21, HOOK_ITEM);
-        inventory.setItem(22, WEB_ITEM);
+        inventory.setItem(19, TNT_ITEM);
+        inventory.setItem(20, HOOK_ITEM);
+        inventory.setItem(21, WEB_ITEM);
         inventory.setItem(23, INVIS_ITEM);
         inventory.setItem(24, BOOST_ITEM);
+        inventory.setItem(25, CHIKUN_ITEM);
     }
 
     private static void setupMenuItemMetas()
@@ -181,5 +186,14 @@ public class FloorGuiMenu implements Listener
             ChatColor.YELLOW + "Left Click: Add",
             ChatColor.YELLOW + "Right Click: Remove"));
         BOOST_ITEM.setItemMeta(meta);
+
+        meta = CHIKUN_ITEM.getItemMeta();
+        meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Chikun Bomb");
+        meta.setLore(Arrays.asList(
+                    ChatColor.WHITE + "Instantly spawn in",
+                    ChatColor.WHITE + "chikun distractions!",
+                    ChatColor.YELLOW + "Left Click: Add",
+                    ChatColor.YELLOW + "Right Click: Remove"));
+        CHIKUN_ITEM.setItemMeta(meta);
     }
 }
