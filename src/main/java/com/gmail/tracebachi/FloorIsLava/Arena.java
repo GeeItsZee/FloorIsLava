@@ -180,6 +180,11 @@ public class Arena implements Listener
             state.restoreInventory(player);
             state.restoreLocation(player);
             state.restoreGameMode(player);
+
+            if(arenaBlocks.isInside(player.getLocation()))
+            {
+                player.teleport(watchLocation);
+            }
         }
 
         if(!started && watching.size() < minimumPlayers)
