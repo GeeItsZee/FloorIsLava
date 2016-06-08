@@ -27,6 +27,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.*;
@@ -181,7 +182,8 @@ public class Arena implements Listener
             state.restoreLocation(player);
             state.restoreGameMode(player);
 
-            if(arenaBlocks.isInside(player.getLocation()))
+            if(arenaBlocks.isBelow(player.getLocation())
+                        || arenaBlocks.isInside(player.getLocation()))
             {
                 player.teleport(watchLocation);
             }
@@ -802,13 +804,15 @@ public class Arena implements Listener
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onCreatureSpawn(CreatureSpawnEvent event)
     {
         Entity entity = event.getEntity();
 
         if(!event.getSpawnReason().equals(CreatureSpawnEvent.SpawnReason.EGG)
-                    || !arenaBlocks.isInside(entity.getLocation())) return;
+                    || !arenaBlocks.isInside(entity.getLocation())
+                    || !event.getEntity().getType().equals(EntityType.CHICKEN)) return;
+        event.setCancelled(false);
 
         entity.setCustomNameVisible(true);
         entity.setCustomName(ChatColor.LIGHT_PURPLE + "\\o/ CHIKUN \\o/");

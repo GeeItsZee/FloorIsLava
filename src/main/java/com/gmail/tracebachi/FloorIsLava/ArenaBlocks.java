@@ -106,6 +106,11 @@ public class ArenaBlocks
         return loc.getBlockY() > lower.y() - y;
     }
 
+    public boolean isBelow(Location loc)
+    {
+        return loc.getBlockY() < lower.y();
+    }
+
     public void degradeBlocks(World world, int amount)
     {
         for(int i = lower.x(); i <= upper.x(); ++i)
