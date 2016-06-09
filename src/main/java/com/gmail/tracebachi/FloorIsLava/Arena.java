@@ -181,12 +181,16 @@ public class Arena implements Listener
             state.restoreInventory(player);
             state.restoreLocation(player);
             state.restoreGameMode(player);
+        }
 
-            if(arenaBlocks.isBelow(player.getLocation())
-                        || arenaBlocks.isInside(player.getLocation()))
-            {
-                player.teleport(watchLocation);
-            }
+        if(arenaBlocks.isInside(player.getLocation()))
+        {
+            player.teleport(watchLocation);
+        }
+
+        if(arenaBlocks.isBelow(player.getLocation()))
+        {
+            player.teleport(watchLocation);
         }
 
         if(!started && watching.size() < minimumPlayers)
@@ -276,6 +280,16 @@ public class Arena implements Listener
                 state.restoreLocation(player);
                 state.restoreGameMode(player);
                 player.setFireTicks(0);
+
+                if(arenaBlocks.isBelow(player.getLocation()))
+                {
+                    player.teleport(watchLocation);
+                }
+
+                if(!started && watching.size() < minimumPlayers)
+                {
+                    resetCoundown();
+                }
 
                 plugin.getEconomy().depositPlayer(entry.getKey(), baseReward);
                 player.sendMessage(GOOD + "Thanks for playing! Here's $" + baseReward);
