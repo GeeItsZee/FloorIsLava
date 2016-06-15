@@ -14,9 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with FloorIsLava.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.gmail.tracebachi.FloorIsLava;
+package com.gmail.tracebachi.FloorIsLava.gui;
 
-import com.gmail.tracebachi.FloorIsLava.UtilClasses.Loadout;
+import com.gmail.tracebachi.FloorIsLava.arena.Arena;
+import com.gmail.tracebachi.FloorIsLava.utils.Loadout;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -67,6 +68,7 @@ public class FloorGuiMenuListener implements Listener
             loadout.invisCount = 0;
             loadout.boostCount = 0;
             loadout.chikunCount = 0;
+            loadout.stealCount = 0;
 
             loadoutMap.put(name, loadout);
         }
@@ -100,7 +102,7 @@ public class FloorGuiMenuListener implements Listener
 		/* Loadout Items */
         int change = event.getClick().equals(ClickType.LEFT) ? 1 : -1;
 
-        if(change == 1 && loadout.countSum() == 5)
+        if(change == 1 && loadout.countSum() == (arena.getBooster().isActive() ? 10 : 5))
         {
             player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
             return;
@@ -201,6 +203,21 @@ public class FloorGuiMenuListener implements Listener
                 player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
             }
         }
+        else if(matchesItemStack(FloorGuiMenu.STEAL_ITEM, clickedItem))
+        {
+            int oldCount = loadout.stealCount;
+            loadout.stealCount = Math.max(0, loadout.stealCount + change);
+            updateLoadoutCounts(loadout, inventory);
+
+            if(loadout.stealCount != oldCount)
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            }
+            else
+            {
+                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            }
+        }
     }
 
     private void updateLoadoutCounts(Loadout loadout, Inventory inventory)
@@ -211,7 +228,8 @@ public class FloorGuiMenuListener implements Listener
         int invisAmount = 0;
         int boostAmount = 0;
         int chikunAmount = 0;
-        int pointsAmount = 4;
+        int stealAmount = 0;
+        int pointsAmount = arena.getBooster().isActive() ? 9 : 4;
 
         if(loadout != null)
         {
@@ -221,7 +239,8 @@ public class FloorGuiMenuListener implements Listener
             invisAmount = loadout.invisCount;
             boostAmount = loadout.boostCount;
             chikunAmount = loadout.chikunCount;
-            pointsAmount = 5 - loadout.countSum();
+            stealAmount = loadout.stealCount;
+            pointsAmount = (arena.getBooster().isActive() ? 10 : 5) - loadout.countSum();
         }
 
         FloorGuiMenu.POINTS_ITEM.setAmount(pointsAmount);
@@ -231,14 +250,16 @@ public class FloorGuiMenuListener implements Listener
         FloorGuiMenu.INVIS_ITEM.setAmount(invisAmount);
         FloorGuiMenu.BOOST_ITEM.setAmount(boostAmount);
         FloorGuiMenu.CHIKUN_ITEM.setAmount(chikunAmount);
+        FloorGuiMenu.STEAL_ITEM.setAmount(stealAmount);
 
         inventory.setItem(13, FloorGuiMenu.POINTS_ITEM);
         inventory.setItem(19, FloorGuiMenu.TNT_ITEM);
         inventory.setItem(20, FloorGuiMenu.HOOK_ITEM);
         inventory.setItem(21, FloorGuiMenu.WEB_ITEM);
-        inventory.setItem(23, FloorGuiMenu.INVIS_ITEM);
-        inventory.setItem(24, FloorGuiMenu.BOOST_ITEM);
-        inventory.setItem(25, FloorGuiMenu.CHIKUN_ITEM);
+        inventory.setItem(22, FloorGuiMenu.INVIS_ITEM);
+        inventory.setItem(23, FloorGuiMenu.BOOST_ITEM);
+        inventory.setItem(24, FloorGuiMenu.CHIKUN_ITEM);
+        inventory.setItem(25, FloorGuiMenu.STEAL_ITEM);
     }
 
     private boolean matchesItemStack(ItemStack original, ItemStack input)
