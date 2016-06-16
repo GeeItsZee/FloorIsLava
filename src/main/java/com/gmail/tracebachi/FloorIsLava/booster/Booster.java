@@ -64,7 +64,7 @@ public class Booster
     {
         return Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, ()-> {
             if(boosterType.getTime() > 0
-                        && boosterType.getTime() >= System.currentTimeMillis() - timeActivated)
+                        && boosterType.getTime() <= System.currentTimeMillis() - timeActivated)
             {
                 stop();
                 return;
