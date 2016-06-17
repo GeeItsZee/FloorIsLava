@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with FloorIsLava.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.gmail.tracebachi.FloorIsLava.utils;
+package com.gmail.tracebachi.FloorIsLava.Utils;
 
 import org.bukkit.GameMode;
 import org.bukkit.Location;

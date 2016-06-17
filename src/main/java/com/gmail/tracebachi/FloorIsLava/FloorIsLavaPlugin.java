@@ -16,10 +16,10 @@
  */
 package com.gmail.tracebachi.FloorIsLava;
 
-import com.gmail.tracebachi.FloorIsLava.arena.Arena;
-import com.gmail.tracebachi.FloorIsLava.commands.ManageFloorCommand;
-import com.gmail.tracebachi.FloorIsLava.commands.FloorCommand;
-import com.gmail.tracebachi.FloorIsLava.gui.FloorGuiMenuListener;
+import com.gmail.tracebachi.FloorIsLava.Arena.Arena;
+import com.gmail.tracebachi.FloorIsLava.Commands.FloorCommand;
+import com.gmail.tracebachi.FloorIsLava.Commands.ManageFloorCommand;
+import com.gmail.tracebachi.FloorIsLava.Gui.FloorGuiMenuListener;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;

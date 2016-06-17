@@ -14,13 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with FloorIsLava.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.gmail.tracebachi.FloorIsLava.arena;
+package com.gmail.tracebachi.FloorIsLava.Arena;
 
 import com.gmail.tracebachi.FloorIsLava.FloorIsLavaPlugin;
-import com.gmail.tracebachi.FloorIsLava.booster.Booster;
-import com.gmail.tracebachi.FloorIsLava.utils.Loadout;
-import com.gmail.tracebachi.FloorIsLava.utils.PlayerState;
-import com.gmail.tracebachi.FloorIsLava.utils.Point;
+import com.gmail.tracebachi.FloorIsLava.Booster.Booster;
+import com.gmail.tracebachi.FloorIsLava.Utils.Loadout;
+import com.gmail.tracebachi.FloorIsLava.Utils.PlayerState;
+import com.gmail.tracebachi.FloorIsLava.Utils.Point;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
@@ -228,7 +228,7 @@ public class Arena implements Listener
     {
         if(started)
         {
-            throw new IllegalStateException("start() was called while arena has already been started!");
+            throw new IllegalStateException("start() was called while Arena has already been started!");
         }
 
         Iterator<Map.Entry<String, PlayerState>> iter = playing.entrySet().iterator();
@@ -485,11 +485,11 @@ public class Arena implements Listener
     {
         if(started)
         {
-            sender.sendMessage(BAD + "The arena has already started!");
+            sender.sendMessage(BAD + "The Arena has already started!");
         }
         else if(!enabled)
         {
-            sender.sendMessage(BAD + "The arena is currently disabled!");
+            sender.sendMessage(BAD + "The Arena is currently disabled!");
         }
         else
         {

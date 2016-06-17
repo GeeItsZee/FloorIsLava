@@ -1,7 +1,7 @@
-package com.gmail.tracebachi.FloorIsLava.booster;
+package com.gmail.tracebachi.FloorIsLava.Booster;
 
 import com.gmail.tracebachi.FloorIsLava.FloorIsLavaPlugin;
-import com.gmail.tracebachi.FloorIsLava.arena.Arena;
+import com.gmail.tracebachi.FloorIsLava.Arena.Arena;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -79,7 +79,7 @@ public class Booster
             int minutesLeft = Integer.parseInt(formattedTimeLeft.split(":")[1]);
             int secondsLeft = Integer.parseInt(formattedTimeLeft.split(":")[2]);
             String timeLeftMessage = ChatColor.translateAlternateColorCodes('&',
-                        Arena.GOOD + "&7Time remaining for &a" + owner + "&7's booster: "
+                        Arena.GOOD + "&7Time remaining for &a" + owner + "&7's Booster: "
                         + (boosterType.equals(BoosterType.PERMANENT) ? "Unlimited" : "Hours: "
                         + hoursLeft + ", Minutes: " + minutesLeft + ", Seconds: " + secondsLeft));
             broadcast(timeLeftMessage, false);
