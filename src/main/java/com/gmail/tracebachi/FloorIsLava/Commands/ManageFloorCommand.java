@@ -14,13 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with FloorIsLava.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.gmail.tracebachi.FloorIsLava.Commands;
+package com.gmail.tracebachi.FloorIsLava.commands;
 
-import com.gmail.tracebachi.FloorIsLava.Arena;
+import com.gmail.tracebachi.FloorIsLava.arena.Arena;
 import com.gmail.tracebachi.FloorIsLava.FloorIsLavaPlugin;
+import com.gmail.tracebachi.FloorIsLava.booster.Booster;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 /**
  * Created by Trace Bachi (BigBossZee) on 8/20/2015.
@@ -47,7 +49,7 @@ public class ManageFloorCommand implements CommandExecutor
 
         if(args.length == 0)
         {
-            sender.sendMessage(Arena.BAD + "/mfloor [start, stop, reload, enable, disable]");
+            sender.sendMessage(Arena.BAD + "/mfloor [start, stop, booster, reload, enable, disable]");
             return true;
         }
 
@@ -74,9 +76,56 @@ public class ManageFloorCommand implements CommandExecutor
         {
             arena.disableArena(sender);
         }
+        else if(args[0].equalsIgnoreCase("booster"))
+        {
+            if(args.length < 2)
+            {
+                sender.sendMessage(Arena.BAD + "/mfloor booster [start, stop]");
+                return true;
+            }
+
+            if(args[1].equalsIgnoreCase("stop"))
+            {
+                if(!arena.getBooster().isActive())
+                {
+                    sender.sendMessage(Arena.BAD + "A booster is not active.");
+                    return true;
+                }
+                arena.getBooster().stop();
+            }
+            else if(args[1].equalsIgnoreCase("start"))
+            {
+                if(arena.getBooster().isActive())
+                {
+                    sender.sendMessage(Arena.BAD + "Booster is already active. "
+                                + "To start another one, first type: /mfloor booster stop");
+                    return true;
+                }
+                String owner = "Console";
+                if(sender instanceof Player)
+                    owner = ((Player) sender).getName();
+                Booster.BoosterType type = Booster.BoosterType.PERMANENT;
+                if(args.length >= 3)
+                {
+                    String requestedType = args[2];
+                    Booster.BoosterType newType = Booster.BoosterType.match(requestedType);
+                    if(newType == null)
+                    {
+                        sender.sendMessage(arena.BAD + "/mfloor booster start [1h, 2h, 4h]");
+                        return true;
+                    }
+                    type = newType;
+                }
+                arena.getBooster().start(owner, type);
+            }
+            else
+            {
+                sender.sendMessage(Arena.BAD + "/mfloor booster [start, stop]");
+            }
+        }
         else
         {
-            sender.sendMessage(Arena.BAD + "/mfloor [start, stop, reload, enable, disable]");
+            sender.sendMessage(Arena.BAD + "/mfloor [start, stop, booster, reload, enable, disable]");
         }
         return true;
     }

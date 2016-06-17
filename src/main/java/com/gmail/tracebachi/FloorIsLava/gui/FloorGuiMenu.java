@@ -14,9 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with FloorIsLava.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.gmail.tracebachi.FloorIsLava;
+package com.gmail.tracebachi.FloorIsLava.gui;
 
-import com.gmail.tracebachi.FloorIsLava.UtilClasses.Loadout;
+import com.gmail.tracebachi.FloorIsLava.arena.Arena;
+import com.gmail.tracebachi.FloorIsLava.utils.Loadout;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -46,6 +47,7 @@ public class FloorGuiMenu implements Listener
     public static final ItemStack INVIS_ITEM = new ItemStack(Material.BLAZE_ROD);
     public static final ItemStack BOOST_ITEM = new ItemStack(Material.FEATHER);
     public static final ItemStack CHIKUN_ITEM = new ItemStack(Material.EGG);
+    public static final ItemStack STEAL_ITEM = new ItemStack(Material.FLINT_AND_STEEL);
 
     static
     {
@@ -77,7 +79,8 @@ public class FloorGuiMenu implements Listener
         int invisAmount = 0;
         int boostAmount = 0;
         int chikunAmount = 0;
-        int pointsAmount = 4;
+        int stealAmount = 0;
+        int pointsAmount = arena.getBooster().isActive() ? 9 : 4;
 
         if(loadout != null)
         {
@@ -87,7 +90,8 @@ public class FloorGuiMenu implements Listener
             invisAmount = loadout.invisCount;
             boostAmount = loadout.boostCount;
             chikunAmount = loadout.chikunCount;
-            pointsAmount = 5 - loadout.countSum();
+            stealAmount = loadout.stealCount;
+            pointsAmount = (arena.getBooster().isActive() ? 10 : 5) - loadout.countSum();
         }
 
         POINTS_ITEM.setAmount(pointsAmount);
@@ -97,6 +101,7 @@ public class FloorGuiMenu implements Listener
         INVIS_ITEM.setAmount(invisAmount);
         BOOST_ITEM.setAmount(boostAmount);
         CHIKUN_ITEM.setAmount(chikunAmount);
+        STEAL_ITEM.setAmount(stealAmount);
 
         inventory.setItem(2, JOIN_ITEM);
         inventory.setItem(3, LEAVE_ITEM);
@@ -107,9 +112,10 @@ public class FloorGuiMenu implements Listener
         inventory.setItem(19, TNT_ITEM);
         inventory.setItem(20, HOOK_ITEM);
         inventory.setItem(21, WEB_ITEM);
-        inventory.setItem(23, INVIS_ITEM);
-        inventory.setItem(24, BOOST_ITEM);
-        inventory.setItem(25, CHIKUN_ITEM);
+        inventory.setItem(22, INVIS_ITEM);
+        inventory.setItem(23, BOOST_ITEM);
+        inventory.setItem(24, CHIKUN_ITEM);
+        inventory.setItem(25, STEAL_ITEM);
     }
 
     private static void setupMenuItemMetas()
@@ -195,5 +201,15 @@ public class FloorGuiMenu implements Listener
                     ChatColor.YELLOW + "Left Click: Add",
                     ChatColor.YELLOW + "Right Click: Remove"));
         CHIKUN_ITEM.setItemMeta(meta);
+
+        meta = STEAL_ITEM.getItemMeta();
+        meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Steal");
+        meta.setLore(Arrays.asList(
+                    ChatColor.WHITE + "You have a chance to steal an",
+                    ChatColor.WHITE + "ability from an opponent or",
+                    ChatColor.WHITE + "backfire on you!",
+                    ChatColor.YELLOW + "Left Click: Add",
+                    ChatColor.YELLOW + "Right Click: Remove"));
+        STEAL_ITEM.setItemMeta(meta);
     }
 }

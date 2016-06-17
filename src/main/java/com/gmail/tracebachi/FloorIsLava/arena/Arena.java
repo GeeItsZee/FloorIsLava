@@ -14,11 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with FloorIsLava.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.gmail.tracebachi.FloorIsLava;
+package com.gmail.tracebachi.FloorIsLava.arena;
 
-import com.gmail.tracebachi.FloorIsLava.UtilClasses.Loadout;
-import com.gmail.tracebachi.FloorIsLava.UtilClasses.PlayerState;
-import com.gmail.tracebachi.FloorIsLava.UtilClasses.Point;
+import com.gmail.tracebachi.FloorIsLava.FloorIsLavaPlugin;
+import com.gmail.tracebachi.FloorIsLava.booster.Booster;
+import com.gmail.tracebachi.FloorIsLava.utils.Loadout;
+import com.gmail.tracebachi.FloorIsLava.utils.PlayerState;
+import com.gmail.tracebachi.FloorIsLava.utils.Point;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
@@ -53,7 +55,10 @@ public class Arena implements Listener
     public static final String BAD = ChatColor.translateAlternateColorCodes('&', "&8[&cFIL&8]&c ");
 
     private FloorIsLavaPlugin plugin;
+    private Booster booster;
+
     private ItemStack winPrize;
+    private ItemStack losePrize;
 
     private boolean started = false;
     private boolean enabled = true;
@@ -72,6 +77,7 @@ public class Arena implements Listener
     private HashMap<String, Long> invisUseDelayMap = new HashMap<>();
     private HashMap<String, Long> boostUseDelayMap = new HashMap<>();
     private HashMap<String, Long> chikunUseDelayMap = new HashMap<>();
+    private HashMap<String, Long> stealUseDelayMap = new HashMap<>();
 
     private int minimumPlayers;
     private int baseReward;
@@ -89,25 +95,39 @@ public class Arena implements Listener
     private int invisUseDelay;
     private int boostUseDelay;
     private int chikunUseDelay;
+    private int stealUseDelay;
 
     private int wager = 0;
     private int countdown = 0;
     private int elapsedTicks = 0;
     private int degradeLevel = 0;
 
+    private int boosterBroadcastRange;
+
     public Arena(FloorIsLavaPlugin plugin)
     {
         this.plugin = plugin;
+        this.booster = new Booster(plugin, this);
         this.winPrize = new ItemStack(Material.POTATO_ITEM);
+        this.losePrize = new ItemStack(Material.POISONOUS_POTATO);
 
         ItemMeta winTatoMeta = winPrize.getItemMeta();
         winTatoMeta.setDisplayName(ChatColor.GOLD + "WinTato");
-        List<String> lore = new ArrayList<>();
-        lore.add("You won a round of FloorIsLava!");
-        lore.add("--");
-        lore.add("May the WinTato be with you - Zee");
-        winTatoMeta.setLore(lore);
+        List<String> winTatoLore = new ArrayList<>();
+        winTatoLore.add("You won a round of FloorIsLava!");
+        winTatoLore.add("--");
+        winTatoLore.add("May the WinTato be with you - Zee");
+        winTatoMeta.setLore(winTatoLore);
         winPrize.setItemMeta(winTatoMeta);
+
+        ItemMeta loseTatoMeta = losePrize.getItemMeta();
+        loseTatoMeta.setDisplayName(ChatColor.RED + "LoseTato");
+        List<String> loseTatoLore = new ArrayList<>();
+        loseTatoLore.add("You lost a round of FloorIsLava!");
+        loseTatoLore.add("--");
+        loseTatoLore.add("Better luck next time - Fridge");
+        loseTatoMeta.setLore(loseTatoLore);
+        losePrize.setItemMeta(loseTatoMeta);
     }
 
     public void addWager(Integer amount, Player player)
@@ -276,10 +296,12 @@ public class Arena implements Listener
             if(!arenaBlocks.isInside(location))
             {
                 iter.remove();
+                losePrize.setAmount(booster.isActive() ? 2 : 1);
                 state.restoreInventory(player);
                 state.restoreLocation(player);
                 state.restoreGameMode(player);
                 player.setFireTicks(0);
+                player.getInventory().addItem(losePrize);
 
                 if(arenaBlocks.isBelow(player.getLocation()))
                 {
@@ -291,8 +313,18 @@ public class Arena implements Listener
                     resetCoundown();
                 }
 
+                if(booster.isActive()) baseReward *= 2;
                 plugin.getEconomy().depositPlayer(entry.getKey(), baseReward);
-                player.sendMessage(GOOD + "Thanks for playing! Here's $" + baseReward);
+
+                if(booster.isActive())
+                {
+                    player.sendMessage(GOOD + "Thanks for playing! Here's two LoseTatoes and $" + baseReward);
+                }
+                else
+                {
+                    player.sendMessage(GOOD + "Thanks for playing! Here's a LoseTatoe and $" + baseReward);
+                }
+                if(booster.isActive()) baseReward /= 2;
 
                 broadcast(BAD + entry.getKey() + " fell! " + playing.size() + '/' + watching.size() + " left!", null);
             }
@@ -315,17 +347,28 @@ public class Arena implements Listener
                 Player player = Bukkit.getPlayer(entry.getKey());
                 PlayerState state = entry.getValue();
 
+                winPrize.setAmount(booster.isActive() ? 2 : 1);
                 state.restoreInventory(player);
                 state.restoreLocation(player);
-                player.getInventory().addItem(winPrize);
-                player.setFireTicks(0);
                 state.restoreGameMode(player);
+                player.setFireTicks(0);
+                player.getInventory().addItem(winPrize);
 
+                if(booster.isActive()) winnerReward *= 2;
                 plugin.getEconomy().depositPlayer(entry.getKey(), (winnerReward + wager));
 
-                player.sendMessage(GOOD + "You won! Here's a WinTato and $" + (winnerReward + wager));
+                if(booster.isActive())
+                {
+                    player.sendMessage(GOOD + "You won! Here's two WinTatoes and $" + (winnerReward + wager));
+
+                }
+                else
+                {
+                    player.sendMessage(GOOD + "You won! Here's a WinTato and $" + (winnerReward + wager));
+                }
 
                 plugin.getLogger().info(entry.getKey() + " won a round. Amount = " + (winnerReward + wager));
+                if(booster.isActive()) winnerReward /= 2;
                 wager = 0;
 
                 broadcast(GOOD + entry.getKey() + " won that round!", null);
@@ -385,6 +428,11 @@ public class Arena implements Listener
         return watching.size();
     }
 
+    public int getBoosterBroadcastRange()
+    {
+        return boosterBroadcastRange;
+    }
+
     public Location getWatchLocation()
     {
         return watchLocation;
@@ -393,6 +441,11 @@ public class Arena implements Listener
     public HashMap<String, Loadout> getLoadoutMap()
     {
         return loadoutMap;
+    }
+
+    public Booster getBooster()
+    {
+        return booster;
     }
 
     /**************************************************************************
@@ -417,6 +470,8 @@ public class Arena implements Listener
         invisUseDelay = config.getInt("RodOfInvisibilityUseDelay");
         boostUseDelay = config.getInt("BoostUseDelay");
         chikunUseDelay = config.getInt("ChikunUseDelay");
+        stealUseDelay = config.getInt("StealUseDelay");
+        boosterBroadcastRange = config.getInt("BoosterBroadcastRange");
 
         arenaBlocks = new ArenaBlocks(
                     config.getConfigurationSection("PointOne"),
@@ -445,7 +500,7 @@ public class Arena implements Listener
             }
 
             start();
-            sender.sendMessage("Force-Started FloorIsLava.");
+            sender.sendMessage(GOOD + "Force-Started FloorIsLava.");
         }
     }
 
@@ -739,6 +794,58 @@ public class Arena implements Listener
                 player.sendMessage(BAD + "You cannot web players yet.");
             }
         }
+        else if(heldItem.getType().equals(Material.FLINT_AND_STEEL))
+        {
+            Long endOfDelayTime = stealUseDelayMap.getOrDefault(playerName, 0L);
+
+            if(System.currentTimeMillis() > endOfDelayTime)
+            {
+                if(heldItem.getAmount() == 1)
+                {
+                    player.getInventory().remove(heldItem);
+                }
+                else
+                {
+                    heldItem.setAmount(heldItem.getAmount() - 1);
+                }
+
+                Random random = new Random();
+                int chance =  random.nextInt(100);
+                if(chance < 50)
+                {
+                    player.sendMessage(BAD + "Badluck! Your attempt to steal an ability has backfired.");
+                    if(!doesPlayerHaveItems(player))
+                    {
+                        player.sendMessage(BAD + "It appears you do not have any abilities left...");
+                        launchThief(player);
+                    }
+                    else
+                    {
+                        takeAbility(null, player);
+                        player.sendMessage(BAD + "A random ability has been taken away from you!");
+                    }
+                }
+                else
+                {
+                    if(!doesPlayerHaveItems(rightClicked))
+                    {
+                        player.sendMessage(BAD + "It appears your victim does not have any abilities left...");
+                        launchThief(player);
+                    }
+                    else
+                    {
+                        takeAbility(player, rightClicked);
+                        player.sendMessage(GOOD + "A random ability has been taken away from " + rightClicked.getName() + "!");
+                        rightClicked.sendMessage(BAD + "A random ability has been stolen by " + player.getName() + "!");
+                    }
+                }
+                stealUseDelayMap.put(playerName, System.currentTimeMillis() + stealUseDelay);
+            }
+            else
+            {
+                player.sendMessage(BAD + "You cannot attempt to steal abilities yet.");
+            }
+        }
     }
 
     @EventHandler
@@ -791,11 +898,9 @@ public class Arena implements Listener
         List<Block> blocksToBeDestroyed = event.blockList();
         ListIterator<Block> iterator = blocksToBeDestroyed.listIterator();
 
-        if(!event.getEntity().hasMetadata("fil"))
-        {
-            event.setCancelled(true);
-            return;
-        }
+        if(!event.getEntity().hasMetadata("fil")) return;
+
+        event.setCancelled(true);
 
         while(iterator.hasNext())
         {
@@ -1069,9 +1174,51 @@ public class Arena implements Listener
         return false;
     }
 
+    private boolean doesPlayerHaveItems(Player player)
+    {
+        for(ItemStack itemStack : player.getInventory().getContents())
+        {
+            if(itemStack != null && !itemStack.getType().equals(Material.AIR)) return true;
+        }
+        return false;
+    }
+
+    private void launchThief(Player player)
+    {
+        player.sendMessage(BAD + "Go away, thief!");
+        Vector dir = player.getLocation().getDirection();
+        Vector vec = new Vector(-dir.getX() * 10.0D, 0.6D, -dir.getZ() * 10.0D);
+        player.setVelocity(vec);
+    }
+
+    private void takeAbility(Player to, Player from)
+    {
+        Random random = new Random();
+        int randomAbilitySlot = random.nextInt(7);
+        while(from.getInventory().getContents()[randomAbilitySlot] == null
+                    || from.getInventory().getContents()[randomAbilitySlot].getType()
+                    .equals(Material.AIR))
+        {
+            randomAbilitySlot = random.nextInt(7);
+        }
+        ItemStack takenAway = from.getInventory().getContents()[randomAbilitySlot];
+        if(takenAway.getAmount() == 1)
+        {
+            from.getInventory().remove(takenAway);
+        }
+        else
+        {
+            takenAway.setAmount(takenAway.getAmount() - 1);
+        }
+        ItemStack toGive = takenAway.clone();
+        toGive.setAmount(1);
+        if(to != null) to.getInventory().addItem(toGive);
+    }
+
     private ItemStack[] getContentsFromLoadout(Loadout loadout)
     {
-        ItemStack[] contents = new ItemStack[6];
+        ItemStack[] contents = new ItemStack[7];
+        int c = 0;
 
         if(loadout == null)
         {
@@ -1080,38 +1227,51 @@ public class Arena implements Listener
 
         if(loadout.tntCount > 0)
         {
-            contents[0] = Loadout.TNT_ITEM.clone();
-            contents[0].setAmount(loadout.tntCount);
+            contents[c] = Loadout.TNT_ITEM.clone();
+            contents[c].setAmount(loadout.tntCount);
+            c++;
         }
 
         if(loadout.hookCount > 0)
         {
-            contents[1] = Loadout.HOOK_ITEM.clone();
-            contents[1].setAmount(loadout.hookCount);
+            contents[c] = Loadout.HOOK_ITEM.clone();
+            contents[c].setAmount(loadout.hookCount);
+            c++;
         }
 
         if(loadout.webCount > 0)
         {
-            contents[2] = Loadout.WEB_ITEM.clone();
-            contents[2].setAmount(loadout.webCount);
+            contents[c] = Loadout.WEB_ITEM.clone();
+            contents[c].setAmount(loadout.webCount);
+            c++;
         }
 
         if(loadout.invisCount > 0)
         {
-            contents[3] = Loadout.INVIS_ITEM.clone();
-            contents[3].setAmount(loadout.invisCount);
+            contents[c] = Loadout.INVIS_ITEM.clone();
+            contents[c].setAmount(loadout.invisCount);
+            c++;
         }
 
         if(loadout.boostCount > 0)
         {
-            contents[4] = Loadout.BOOST_ITEM.clone();
-            contents[4].setAmount(loadout.boostCount);
+            contents[c] = Loadout.BOOST_ITEM.clone();
+            contents[c].setAmount(loadout.boostCount);
+            c++;
         }
 
         if(loadout.chikunCount > 0)
         {
-            contents[5] = Loadout.CHIKUN_ITEM.clone();
-            contents[5].setAmount((loadout.chikunCount));
+            contents[c] = Loadout.CHIKUN_ITEM.clone();
+            contents[c].setAmount((loadout.chikunCount));
+            c++;
+        }
+
+        if(loadout.stealCount > 0)
+        {
+            contents[c] = Loadout.STEAL_ITEM.clone();
+            contents[c].setAmount((loadout.stealCount));
+            c++;
         }
 
         return contents;

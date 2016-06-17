@@ -1,6 +1,7 @@
 name: FloorIsLava
 main: com.gmail.tracebachi.FloorIsLava.FloorIsLavaPlugin
-version: 2.4
+version: 2.5
+authors: [Trace Bachi (BigBossZee), Jeremy Lugo (Refrigerbater)]
 depend: [Vault]
 commands:
   floor:

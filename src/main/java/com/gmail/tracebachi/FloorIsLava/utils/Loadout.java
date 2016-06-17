@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with FloorIsLava.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.gmail.tracebachi.FloorIsLava.UtilClasses;
+package com.gmail.tracebachi.FloorIsLava.utils;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -32,6 +32,7 @@ public class Loadout
     public static final ItemStack INVIS_ITEM = new ItemStack(Material.BLAZE_ROD);
     public static final ItemStack BOOST_ITEM = new ItemStack(Material.FEATHER);
     public static final ItemStack CHIKUN_ITEM = new ItemStack(Material.EGG);
+    public static final ItemStack STEAL_ITEM = new ItemStack(Material.FLINT_AND_STEEL);
 
     static
     {
@@ -60,6 +61,10 @@ public class Loadout
         ItemMeta chikunMeta = CHIKUN_ITEM.getItemMeta();
         chikunMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "Chikun Bomb");
         CHIKUN_ITEM.setItemMeta(chikunMeta);
+
+        ItemMeta stealMeta = STEAL_ITEM.getItemMeta();
+        stealMeta.setDisplayName(ChatColor.BLUE + "Steal");
+        STEAL_ITEM.setItemMeta(stealMeta);
     }
 
     public int tntCount;
@@ -68,9 +73,10 @@ public class Loadout
     public int invisCount;
     public int boostCount;
     public int chikunCount;
+    public int stealCount;
 
     public int countSum()
     {
-        return tntCount + hookCount + webCount + invisCount + boostCount + chikunCount;
+        return tntCount + hookCount + webCount + invisCount + boostCount + chikunCount + stealCount;
     }
 }
