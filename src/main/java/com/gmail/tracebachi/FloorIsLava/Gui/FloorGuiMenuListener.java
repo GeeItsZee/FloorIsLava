@@ -104,12 +104,12 @@ public class FloorGuiMenuListener implements Listener
 
         if(change == 1 && loadout.countSum() == (arena.getBooster().isActive() ? 10 : 5))
         {
-            player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
             return;
         }
         else if(change == -1 && loadout.countSum() == 0)
         {
-            player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
             return;
         }
 
@@ -121,11 +121,11 @@ public class FloorGuiMenuListener implements Listener
 
             if(loadout.tntCount != oldCount)
             {
-                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
             }
             else
             {
-                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
             }
         }
         else if(matchesItemStack(FloorGuiMenu.HOOK_ITEM, clickedItem))
@@ -136,11 +136,11 @@ public class FloorGuiMenuListener implements Listener
 
             if(loadout.hookCount != oldCount)
             {
-                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
             }
             else
             {
-                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
             }
         }
         else if(matchesItemStack(FloorGuiMenu.WEB_ITEM, clickedItem))
@@ -151,11 +151,11 @@ public class FloorGuiMenuListener implements Listener
 
             if(loadout.webCount != oldCount)
             {
-                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
             }
             else
             {
-                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
             }
         }
         else if(matchesItemStack(FloorGuiMenu.INVIS_ITEM, clickedItem))
@@ -166,11 +166,11 @@ public class FloorGuiMenuListener implements Listener
 
             if(loadout.invisCount != oldCount)
             {
-                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
             }
             else
             {
-                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
             }
         }
         else if(matchesItemStack(FloorGuiMenu.BOOST_ITEM, clickedItem))
@@ -181,11 +181,11 @@ public class FloorGuiMenuListener implements Listener
 
             if(loadout.boostCount != oldCount)
             {
-                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
             }
             else
             {
-                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
             }
         }
         else if(matchesItemStack(FloorGuiMenu.CHIKUN_ITEM, clickedItem))
@@ -196,11 +196,11 @@ public class FloorGuiMenuListener implements Listener
 
             if(loadout.chikunCount != oldCount)
             {
-                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
             }
             else
             {
-                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
             }
         }
         else if(matchesItemStack(FloorGuiMenu.STEAL_ITEM, clickedItem))
@@ -211,11 +211,11 @@ public class FloorGuiMenuListener implements Listener
 
             if(loadout.stealCount != oldCount)
             {
-                player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
             }
             else
             {
-                player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
             }
         }
     }
