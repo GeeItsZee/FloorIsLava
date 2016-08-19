@@ -100,7 +100,7 @@ public class FloorGuiMenuListener implements Listener
         }
 
 		/* Loadout Items */
-        int change = event.getClick().equals(ClickType.LEFT) ? 1 : -1;
+        int change = event.getClick().equals(ClickType.LEFT) || event.getClick().equals(ClickType.DOUBLE_CLICK) ? 1 : -1;
 
         if(change == 1 && loadout.countSum() == (arena.getBooster().isActive() ? 10 : 5))
         {
