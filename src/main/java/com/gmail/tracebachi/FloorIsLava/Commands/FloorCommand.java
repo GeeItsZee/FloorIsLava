@@ -18,20 +18,19 @@ package com.gmail.tracebachi.FloorIsLava.Commands;
 
 import com.gmail.tracebachi.FloorIsLava.Arena.Arena;
 import com.gmail.tracebachi.FloorIsLava.Gui.FloorGuiMenu;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import static com.gmail.tracebachi.FloorIsLava.Utils.ChatStrings.BAD;
+import static com.gmail.tracebachi.FloorIsLava.Utils.ChatStrings.GOOD;
 
 /**
  * Created by Trace Bachi (BigBossZee) on 8/20/2015.
  */
 public class FloorCommand implements CommandExecutor
 {
-    private static final String GOOD = ChatColor.translateAlternateColorCodes('&', "&8[&aFIL&8]&a ");
-    private static final String BAD = ChatColor.translateAlternateColorCodes('&', "&8[&cFIL&8]&c ");
-
     private final Arena arena;
 
     public FloorCommand(Arena arena)
@@ -50,22 +49,30 @@ public class FloorCommand implements CommandExecutor
 
         Player player = (Player) sender;
 
-        if(args.length >= 2 && args[0].startsWith("w"))
+        if(args.length >= 2 && args[0].startsWith("w")) // W = wager
         {
             Integer amount = parseInt(args[1]);
 
-            arena.addWager(amount, player);
+            if(amount == null || amount <= 0)
+            {
+                player.sendMessage(BAD + args[0] + " is an invalid amount.");
+                return true;
+            }
+
+            arena.wager(amount, player);
         }
-        else if(args.length >= 1 && args[0].startsWith("c"))
+        else if(args.length >= 1 && args[0].startsWith("c")) // C = count
         {
             String status = arena.hasStarted() ? "started." : "waiting.";
 
-            player.sendMessage(GOOD + "There are " + arena.getWatchingSize() + " players " + status);
-            player.sendMessage(GOOD + "Wager: $" + arena.getWager() + "");
+            player.sendMessage(GOOD + "There are " +
+                arena.getWatchingSize() + " players " + status);
+            player.sendMessage(GOOD + "Wager: $" +
+                arena.getWager() + "");
         }
-        else if(args.length >= 1 && args[0].equalsIgnoreCase("leave"))
+        else if(args.length >= 1 && args[0].startsWith("l")) // L = leave
         {
-            arena.remove(player);
+            arena.leave(player);
         }
         else
         {

@@ -17,6 +17,7 @@
 package com.gmail.tracebachi.FloorIsLava;
 
 import com.gmail.tracebachi.FloorIsLava.Arena.Arena;
+import com.gmail.tracebachi.FloorIsLava.Commands.FloorBoosterCommand;
 import com.gmail.tracebachi.FloorIsLava.Commands.FloorCommand;
 import com.gmail.tracebachi.FloorIsLava.Commands.ManageFloorCommand;
 import com.gmail.tracebachi.FloorIsLava.Gui.FloorGuiMenuListener;
@@ -74,6 +75,7 @@ public class FloorIsLavaPlugin extends JavaPlugin
         getServer().getPluginManager().registerEvents(listener, this);
 
         getCommand("floor").setExecutor(new FloorCommand(arena));
+        getCommand("floorbooster").setExecutor(new FloorBoosterCommand(arena));
         getCommand("mfloor").setExecutor(new ManageFloorCommand(this, arena));
     }
 
@@ -81,6 +83,7 @@ public class FloorIsLavaPlugin extends JavaPlugin
     public void onDisable()
     {
         getCommand("mfloor").setExecutor(null);
+        getCommand("floorbooster").setExecutor(null);
         getCommand("floor").setExecutor(null);
 
         listener = null;

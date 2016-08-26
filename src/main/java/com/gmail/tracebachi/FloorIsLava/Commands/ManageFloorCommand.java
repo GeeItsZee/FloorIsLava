@@ -18,11 +18,12 @@ package com.gmail.tracebachi.FloorIsLava.Commands;
 
 import com.gmail.tracebachi.FloorIsLava.Arena.Arena;
 import com.gmail.tracebachi.FloorIsLava.FloorIsLavaPlugin;
-import com.gmail.tracebachi.FloorIsLava.Booster.Booster;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+
+import static com.gmail.tracebachi.FloorIsLava.Utils.ChatStrings.BAD;
+import static com.gmail.tracebachi.FloorIsLava.Utils.ChatStrings.GOOD;
 
 /**
  * Created by Trace Bachi (BigBossZee) on 8/20/2015.
@@ -43,13 +44,13 @@ public class ManageFloorCommand implements CommandExecutor
     {
         if(!sender.hasPermission("FloorIsLava.Staff"))
         {
-            sender.sendMessage(Arena.BAD + "You do not have access to this command!");
+            sender.sendMessage(BAD + "You do not have access to this command!");
             return true;
         }
 
         if(args.length == 0)
         {
-            sender.sendMessage(Arena.BAD + "/mfloor [start, stop, Booster, reload, enable, disable]");
+            sender.sendMessage(BAD + "/mfloor [start, stop, Booster, reload, enable, disable]");
             return true;
         }
 
@@ -61,13 +62,6 @@ public class ManageFloorCommand implements CommandExecutor
         {
             arena.forceStop(sender);
         }
-        else if(args[0].equalsIgnoreCase("reload"))
-        {
-            arena.forceStop(sender);
-            plugin.reloadConfig();
-            arena.loadConfig(plugin.getConfig());
-            sender.sendMessage(Arena.GOOD + "Configuration reloaded.");
-        }
         else if(args[0].equalsIgnoreCase("enable"))
         {
             arena.enableArena(sender);
@@ -76,56 +70,17 @@ public class ManageFloorCommand implements CommandExecutor
         {
             arena.disableArena(sender);
         }
-        else if(args[0].equalsIgnoreCase("Booster"))
+        else if(args[0].equalsIgnoreCase("reload"))
         {
-            if(args.length < 2)
-            {
-                sender.sendMessage(Arena.BAD + "/mfloor Booster [start, stop]");
-                return true;
-            }
+            arena.forceStop(sender);
+            plugin.reloadConfig();
 
-            if(args[1].equalsIgnoreCase("stop"))
-            {
-                if(!arena.getBooster().isActive())
-                {
-                    sender.sendMessage(Arena.BAD + "A Booster is not active.");
-                    return true;
-                }
-                arena.getBooster().stop();
-            }
-            else if(args[1].equalsIgnoreCase("start"))
-            {
-                if(arena.getBooster().isActive())
-                {
-                    sender.sendMessage(Arena.BAD + "Booster is already active. "
-                                + "To start another one, first type: /mfloor Booster stop");
-                    return true;
-                }
-                String owner = "Console";
-                if(sender instanceof Player)
-                    owner = ((Player) sender).getName();
-                Booster.BoosterType type = Booster.BoosterType.PERMANENT;
-                if(args.length >= 3)
-                {
-                    String requestedType = args[2];
-                    Booster.BoosterType newType = Booster.BoosterType.match(requestedType);
-                    if(newType == null)
-                    {
-                        sender.sendMessage(arena.BAD + "/mfloor Booster start [1h, 2h, 4h]");
-                        return true;
-                    }
-                    type = newType;
-                }
-                arena.getBooster().start(owner, type);
-            }
-            else
-            {
-                sender.sendMessage(Arena.BAD + "/mfloor Booster [start, stop]");
-            }
+            arena.loadConfig(plugin.getConfig());
+            sender.sendMessage(GOOD + "Configuration reloaded.");
         }
         else
         {
-            sender.sendMessage(Arena.BAD + "/mfloor [start, stop, Booster, reload, enable, disable]");
+            sender.sendMessage(BAD + "/mfloor [start, stop, Booster, reload, enable, disable]");
         }
         return true;
     }

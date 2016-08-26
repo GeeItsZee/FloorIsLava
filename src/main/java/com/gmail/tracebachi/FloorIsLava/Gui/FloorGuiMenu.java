@@ -32,9 +32,6 @@ import java.util.Collections;
 
 public class FloorGuiMenu implements Listener
 {
-    private Arena arena;
-    private Inventory inventory;
-
     public static final ItemStack JOIN_ITEM = new ItemStack(Material.LEATHER_CHESTPLATE);
     public static final ItemStack LEAVE_ITEM = new ItemStack(Material.LEATHER_LEGGINGS);
     public static final ItemStack WATCH_ITEM = new ItemStack(Material.EYE_OF_ENDER);
@@ -49,76 +46,48 @@ public class FloorGuiMenu implements Listener
     public static final ItemStack CHIKUN_ITEM = new ItemStack(Material.EGG);
     public static final ItemStack STEAL_ITEM = new ItemStack(Material.FLINT_AND_STEEL);
 
-    static
-    {
-        setupMenuItemMetas();
-    }
+    private Arena arena;
+    private Inventory inventory;
 
     public FloorGuiMenu(Arena arena)
     {
         this.arena = arena;
         this.inventory = Bukkit.createInventory(null, 27, "Floor Is Lava Menu");
-
-        setupMenuItemMetas();
     }
 
     public void showTo(Player player)
     {
-        setupLoadoutCounts(player);
-        player.openInventory(inventory);
-    }
-
-    private void setupLoadoutCounts(Player player)
-    {
         String name = player.getName();
-        Loadout loadout = arena.getLoadoutMap().get(name);
-
-        int tntAmount = 1;
-        int hookAmount = 0;
-        int webAmount = 0;
-        int invisAmount = 0;
-        int boostAmount = 0;
-        int chikunAmount = 0;
-        int stealAmount = 0;
-        int pointsAmount = arena.getBooster().isActive() ? 9 : 4;
-
-        if(loadout != null)
-        {
-            tntAmount = loadout.tntCount;
-            hookAmount = loadout.hookCount;
-            webAmount = loadout.webCount;
-            invisAmount = loadout.invisCount;
-            boostAmount = loadout.boostCount;
-            chikunAmount = loadout.chikunCount;
-            stealAmount = loadout.stealCount;
-            pointsAmount = (arena.getBooster().isActive() ? 10 : 5) - loadout.countSum();
-        }
-
-        POINTS_ITEM.setAmount(pointsAmount);
-        TNT_ITEM.setAmount(tntAmount);
-        HOOK_ITEM.setAmount(hookAmount);
-        WEB_ITEM.setAmount(webAmount);
-        INVIS_ITEM.setAmount(invisAmount);
-        BOOST_ITEM.setAmount(boostAmount);
-        CHIKUN_ITEM.setAmount(chikunAmount);
-        STEAL_ITEM.setAmount(stealAmount);
+        Loadout loadout = arena.getLoadoutMap().getOrDefault(name, new Loadout());
 
         inventory.setItem(2, JOIN_ITEM);
         inventory.setItem(3, LEAVE_ITEM);
         inventory.setItem(5, WATCH_ITEM);
         inventory.setItem(6, HELP_ITEM);
 
-        inventory.setItem(13, POINTS_ITEM);
-        inventory.setItem(19, TNT_ITEM);
-        inventory.setItem(20, HOOK_ITEM);
-        inventory.setItem(21, WEB_ITEM);
-        inventory.setItem(22, INVIS_ITEM);
-        inventory.setItem(23, BOOST_ITEM);
-        inventory.setItem(24, CHIKUN_ITEM);
-        inventory.setItem(25, STEAL_ITEM);
+        int maxPoints = arena.getBooster().isActive() ? 10 : 5;
+
+        inventory.setItem(13, cloneWithAmount(POINTS_ITEM, maxPoints - loadout.countSum()));
+        inventory.setItem(19, cloneWithAmount(TNT_ITEM, loadout.tnt));
+        inventory.setItem(20, cloneWithAmount(HOOK_ITEM, loadout.hook));
+        inventory.setItem(21, cloneWithAmount(WEB_ITEM, loadout.web));
+        inventory.setItem(22, cloneWithAmount(INVIS_ITEM, loadout.invis));
+        inventory.setItem(23, cloneWithAmount(BOOST_ITEM, loadout.boost));
+        inventory.setItem(24, cloneWithAmount(CHIKUN_ITEM, loadout.chikun));
+        inventory.setItem(25, cloneWithAmount(STEAL_ITEM, loadout.steal));
+
+        player.openInventory(inventory);
     }
 
-    private static void setupMenuItemMetas()
+    private ItemStack cloneWithAmount(ItemStack itemStack, int amount)
+    {
+        ItemStack itemStackClone = itemStack.clone();
+        itemStackClone.setAmount(amount);
+
+        return itemStackClone;
+    }
+
+    static
     {
         ItemMeta meta = JOIN_ITEM.getItemMeta();
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Join");

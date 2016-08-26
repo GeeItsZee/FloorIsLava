@@ -16,43 +16,37 @@
  */
 package com.gmail.tracebachi.FloorIsLava.Arena;
 
+import com.gmail.tracebachi.FloorIsLava.Utils.CuboidArea;
 import com.gmail.tracebachi.FloorIsLava.Utils.Point;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
-import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 /**
  * Created by Trace Bachi (BigBossZee) on 8/20/2015.
  */
 public class ArenaBlocks
 {
-    private Point upper;
-    private Point lower;
+    private CuboidArea cuboidArea;
     private ArrayList<BlockState> blockStates = new ArrayList<>();
-    private Random random = new Random();
 
-    public ArenaBlocks(ConfigurationSection alpha, ConfigurationSection beta)
+    public ArenaBlocks(CuboidArea cuboidArea)
     {
-        int alphaX = alpha.getInt("x");
-        int alphaY = alpha.getInt("y");
-        int alphaZ = alpha.getInt("z");
-        int betaX = beta.getInt("x");
-        int betaY = beta.getInt("y");
-        int betaZ = beta.getInt("z");
+        this.cuboidArea = cuboidArea;
+    }
 
-        upper = new Point(Math.max(alphaX, betaX),
-            Math.max(alphaY, betaY), Math.max(alphaZ, betaZ));
-        lower = new Point(Math.min(alphaX, betaX),
-            Math.min(alphaY, betaY), Math.min(alphaZ, betaZ));
+    public CuboidArea getCuboidArea()
+    {
+        return cuboidArea;
     }
 
     public void save(World world)
     {
+        Point lower = cuboidArea.getLower();
+        Point upper = cuboidArea.getUpper();
+
         for(int i = lower.x(); i <= upper.x(); ++i)
         {
             for(int j = lower.y(); j <= upper.y(); ++j)
@@ -75,44 +69,11 @@ public class ArenaBlocks
         blockStates.clear();
     }
 
-    public Location getRandomLocationInside(World world)
-    {
-        return new Location(world,
-            lower.x() + 1 + random.nextInt(upper.x() - lower.x() - 1) + 0.5,
-            upper.y() - 1,
-            lower.z() + 1 + random.nextInt(upper.z() - lower.z() - 1) + 0.5);
-    }
-
-    public boolean isInside(Location loc)
-    {
-        return isInside(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-    }
-
-    public boolean isInside(int locX, int locY, int locZ)
-    {
-        if(locY > upper.y()) return false;
-        if(locY < lower.y()) return false;
-
-        if(locX > upper.x()) return false;
-        if(locX < lower.x()) return false;
-
-        if(locZ > upper.z()) return false;
-        if(locZ < lower.z()) return false;
-        return true;
-    }
-
-    public boolean isYBlocksBelow(Location loc, int y)
-    {
-        return loc.getBlockY() > lower.y() - y;
-    }
-
-    public boolean isBelow(Location loc)
-    {
-        return loc.getBlockY() < lower.y();
-    }
-
     public void degradeBlocks(World world, int amount)
     {
+        Point lower = cuboidArea.getLower();
+        Point upper = cuboidArea.getUpper();
+
         for(int i = lower.x(); i <= upper.x(); ++i)
         {
             for(int j = lower.z(); j <= upper.z(); ++j)

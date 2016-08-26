@@ -16,12 +16,9 @@
  */
 package com.gmail.tracebachi.FloorIsLava.Arena;
 
-import com.gmail.tracebachi.FloorIsLava.FloorIsLavaPlugin;
 import com.gmail.tracebachi.FloorIsLava.Booster.Booster;
-import com.gmail.tracebachi.FloorIsLava.Utils.FireworkSpark;
-import com.gmail.tracebachi.FloorIsLava.Utils.Loadout;
-import com.gmail.tracebachi.FloorIsLava.Utils.PlayerState;
-import com.gmail.tracebachi.FloorIsLava.Utils.Point;
+import com.gmail.tracebachi.FloorIsLava.FloorIsLavaPlugin;
+import com.gmail.tracebachi.FloorIsLava.Utils.*;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.*;
 import org.bukkit.FireworkEffect.Type;
@@ -33,10 +30,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.*;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -47,38 +48,35 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
+import static com.gmail.tracebachi.FloorIsLava.Utils.ChatStrings.BAD;
+import static com.gmail.tracebachi.FloorIsLava.Utils.ChatStrings.GOOD;
+
 /**
  * Created by Trace Bachi (BigBossZee) on 8/20/2015.
  */
 public class Arena implements Listener
 {
-    public static final String GOOD = ChatColor.translateAlternateColorCodes('&', "&8[&aFIL&8]&a ");
-    public static final String BAD = ChatColor.translateAlternateColorCodes('&', "&8[&cFIL&8]&c ");
-
     private FloorIsLavaPlugin plugin;
     private Booster booster;
+    private Random random = new Random();
 
     private ItemStack winPrize;
     private ItemStack losePrize;
 
+    private Map<String, PlayerState> playing = new HashMap<>();
+    private Map<String, Loadout> loadoutMap = new HashMap<>();
+    private Map<String, ItemUseDelay> delayMap = new HashMap<>();
+    private Set<String> watching = new HashSet<>();
+
     private boolean started = false;
     private boolean enabled = true;
+    private int wager = 0;
+    private int countdown = 0;
+    private int elapsedTicks = 0;
+    private int degradeLevel = 0;
     private BukkitTask arenaTask;
     private BukkitTask countdownTask;
     private ArenaBlocks arenaBlocks;
-    private Location watchLocation;
-
-    private HashMap<String, PlayerState> playing = new HashMap<>();
-    private HashMap<String, Loadout> loadoutMap = new HashMap<>();
-    private ArrayList<String> watching = new ArrayList<>();
-
-    private HashMap<String, Long> tntUseDelayMap = new HashMap<>();
-    private HashMap<String, Long> hookUseDelayMap = new HashMap<>();
-    private HashMap<String, Long> webUseDelayMap = new HashMap<>();
-    private HashMap<String, Long> invisUseDelayMap = new HashMap<>();
-    private HashMap<String, Long> boostUseDelayMap = new HashMap<>();
-    private HashMap<String, Long> chikunUseDelayMap = new HashMap<>();
-    private HashMap<String, Long> stealUseDelayMap = new HashMap<>();
 
     private int minimumPlayers;
     private int baseReward;
@@ -97,13 +95,9 @@ public class Arena implements Listener
     private int boostUseDelay;
     private int chikunUseDelay;
     private int stealUseDelay;
-
-    private int wager = 0;
-    private int countdown = 0;
-    private int elapsedTicks = 0;
-    private int degradeLevel = 0;
-
     private int boosterBroadcastRange;
+    private CuboidArea arenaCuboidArea;
+    private CuboidArea watchCuboidArea;
 
     public Arena(FloorIsLavaPlugin plugin)
     {
@@ -131,30 +125,23 @@ public class Arena implements Listener
         losePrize.setItemMeta(loseTatoMeta);
     }
 
-    public void addWager(Integer amount, Player player)
+    public void wager(int amount, Player player)
     {
-        if(amount == null || amount <= 0)
-        {
-            player.sendMessage(BAD + "That is not a valid amount to wager.");
-            return;
-        }
-
         String name = player.getName();
         EconomyResponse response = plugin.getEconomy().withdrawPlayer(name, amount);
 
-        if(response.transactionSuccess())
-        {
-            wager += amount;
-            broadcast(GOOD + "+$" + amount + " by " + name + " ( = $" + wager + " )", name);
-            player.sendMessage(GOOD + "You added $" + amount + " to FloorIsLava ( = $" + wager + " )");
-        }
-        else
+        if(!response.transactionSuccess())
         {
             player.sendMessage(BAD + "You do not have enough funds to wager that amount.");
+            return;
         }
+
+        wager += amount;
+        player.sendMessage(GOOD + "You added $" + amount + " to FloorIsLava ( = $" + wager + " )");
+        broadcast(GOOD + "+$" + amount + " by " + name + " ( = $" + wager + " )", name);
     }
 
-    public void add(Player player)
+    public void join(Player player)
     {
         if(!enabled)
         {
@@ -176,26 +163,47 @@ public class Arena implements Listener
             return;
         }
 
-        playing.put(playerName, null);
-        watching.add(playerName);
-
         broadcast(GOOD + playerName + " has joined.", playerName);
+        playing.put(playerName, null);
         resetCoundown();
 
         player.sendMessage(GOOD + "You have joined FloorIsLava.");
+
+        World world = Bukkit.getWorld(worldName);
+        player.teleport(watchCuboidArea.getRandomLocationInside(world));
     }
 
-    public void remove(Player player)
+    public void watch(Player player)
     {
-        String name = player.getName();
-
-        if(!playing.containsKey(name) && !watching.contains(name))
+        if(!enabled)
         {
-            player.sendMessage(BAD + "You are not part of FloorIsLava.");
+            player.sendMessage(BAD + "Unable to join. FloorIsLava is currently disabled.");
             return;
         }
 
+        watching.add(player.getName());
+
+        player.sendMessage(GOOD + "Teleporting to FloorIsLava viewing area ...");
+
+        World world = Bukkit.getWorld(worldName);
+        player.teleport(watchCuboidArea.getRandomLocationInside(world));
+    }
+
+    public void leave(Player player)
+    {
+        String name = player.getName();
+
+        if(watching.contains(name))
+        {
+            watching.remove(name);
+            player.sendMessage(GOOD + "You are no longer watching FloorIsLava.");
+            return;
+        }
+
+        if(!playing.containsKey(name)) { return; }
+
         PlayerState state = playing.remove(name);
+        Location playerLocation = player.getLocation();
 
         if(state != null)
         {
@@ -204,205 +212,20 @@ public class Arena implements Listener
             state.restoreGameMode(player);
         }
 
-        if(arenaBlocks.isInside(player.getLocation()))
+        if(arenaBlocks.getCuboidArea().isInside(playerLocation))
         {
-            player.teleport(watchLocation);
+            World world = Bukkit.getWorld(worldName);
+            player.teleport(watchCuboidArea.getRandomLocationInside(world));
         }
 
-        if(arenaBlocks.isBelow(player.getLocation()))
-        {
-            player.teleport(watchLocation);
-        }
-
-        if(!started && watching.size() < minimumPlayers)
+        if(!started && playing.size() < minimumPlayers)
         {
             resetCoundown();
         }
 
-        watching.remove(name);
         player.sendMessage(GOOD + "You have left FloorIsLava.");
         player.setFireTicks(0);
         broadcast(BAD + name + " has left.", null);
-    }
-
-    public void start()
-    {
-        if(started)
-        {
-            throw new IllegalStateException("start() was called while arena has already been started!");
-        }
-
-        Iterator<Map.Entry<String, PlayerState>> iter = playing.entrySet().iterator();
-        World world = Bukkit.getWorld(worldName);
-
-        arenaBlocks.save(world);
-
-        while(iter.hasNext())
-        {
-            Map.Entry<String, PlayerState> entry = iter.next();
-            Player player = Bukkit.getPlayer(entry.getKey());
-
-            if(player != null)
-            {
-                String name = player.getName();
-                Loadout loadout = loadoutMap.get(name);
-                PlayerState playerState = new PlayerState();
-
-                player.closeInventory();
-                playerState.save(player);
-                playing.put(entry.getKey(), playerState);
-
-                for(PotionEffect e : player.getActivePotionEffects())
-                {
-                    player.removePotionEffect(e.getType());
-                }
-
-                for(String command : prestartCommands)
-                {
-                    Bukkit.getServer().dispatchCommand(player, command);
-                }
-
-                player.getInventory().setHelmet(null);
-                player.getInventory().setChestplate(null);
-                player.getInventory().setLeggings(null);
-                player.getInventory().setBoots(null);
-
-                player.teleport(arenaBlocks.getRandomLocationInside(world));
-                player.getInventory().setContents(getContentsFromLoadout(loadout));
-            }
-            else
-            {
-                plugin.getLogger().info(entry.getKey() + " should have been removed on logout, but was not.");
-                iter.remove();
-                watching.remove(entry.getKey());
-            }
-        }
-
-        arenaTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 1, ticksPerCheck);
-        started = true;
-    }
-
-    public void tick()
-    {
-        Iterator<Map.Entry<String, PlayerState>> iter = playing.entrySet().iterator();
-        World world = Bukkit.getWorld(worldName);
-
-        while(iter.hasNext())
-        {
-            Map.Entry<String, PlayerState> entry = iter.next();
-            Player player = Bukkit.getPlayer(entry.getKey());
-            PlayerState state = entry.getValue();
-            Location location = player.getLocation();
-
-            if(!arenaBlocks.isInside(location))
-            {
-                iter.remove();
-                losePrize.setAmount(booster.isActive() ? 2 : 1);
-                state.restoreInventory(player);
-                state.restoreLocation(player);
-                state.restoreGameMode(player);
-                player.setFireTicks(0);
-                player.getInventory().addItem(losePrize);
-
-                if(arenaBlocks.isBelow(player.getLocation()))
-                {
-                    player.teleport(watchLocation);
-                }
-
-                if(!started && watching.size() < minimumPlayers)
-                {
-                    resetCoundown();
-                }
-
-                if(booster.isActive()) baseReward *= 2;
-                plugin.getEconomy().depositPlayer(entry.getKey(), baseReward);
-
-                if(booster.isActive())
-                {
-                    player.sendMessage(GOOD + "Thanks for playing! Here's two LoseTatoes and $" + baseReward);
-                }
-                else
-                {
-                    player.sendMessage(GOOD + "Thanks for playing! Here's a LoseTatoe and $" + baseReward);
-                }
-                if(booster.isActive()) baseReward /= 2;
-
-                broadcast(BAD + entry.getKey() + " fell! " + playing.size() + '/' + watching.size() + " left!", null);
-            }
-        }
-
-        if(playing.size() > 1)
-        {
-            if(elapsedTicks >= startDegradeOn && (elapsedTicks % degradeOn) == 0)
-            {
-                arenaBlocks.degradeBlocks(world, degradeLevel);
-                degradeLevel++;
-            }
-
-            elapsedTicks++;
-        }
-        else
-        {
-            for(Map.Entry<String, PlayerState> entry : playing.entrySet())
-            {
-                Player player = Bukkit.getPlayer(entry.getKey());
-                PlayerState state = entry.getValue();
-
-                winPrize.setAmount(booster.isActive() ? 2 : 1);
-                state.restoreInventory(player);
-                state.restoreLocation(player);
-                state.restoreGameMode(player);
-                player.setFireTicks(0);
-                player.getInventory().addItem(winPrize);
-
-                if(booster.isActive()) winnerReward *= 2;
-                plugin.getEconomy().depositPlayer(entry.getKey(), (winnerReward + wager));
-
-                if(booster.isActive())
-                {
-                    player.sendMessage(GOOD + "You won! Here's two WinTatoes and $" + (winnerReward + wager));
-
-                }
-                else
-                {
-                    player.sendMessage(GOOD + "You won! Here's a WinTato and $" + (winnerReward + wager));
-                }
-
-                plugin.getLogger().info(entry.getKey() + " won a round. Amount = " + (winnerReward + wager));
-                if(booster.isActive()) winnerReward /= 2;
-                wager = 0;
-
-                broadcast(GOOD + entry.getKey() + " won that round!", null);
-
-                Firework firework = player.getWorld().spawn(player.getLocation().add(0, 1, 0), Firework.class);
-                FireworkMeta fireworkMeta = firework.getFireworkMeta();
-                fireworkMeta.addEffects(FireworkEffect.builder()
-                        .flicker(false)
-                        .trail(true)
-                        .with(Type.BALL_LARGE)
-                        .withColor(Color.BLUE)
-                        .withFade(Color.WHITE)
-                        .build());
-                firework.setFireworkMeta(fireworkMeta);
-            }
-
-            postStopCleanup();
-        }
-    }
-
-    public void countdownTick()
-    {
-        if(countdown <= 0)
-        {
-            countdownTask.cancel();
-            countdownTask = null;
-            start();
-        }
-        else
-        {
-            broadcast(GOOD + "Starting in " + countdown, null);
-            countdown--;
-        }
     }
 
     /**************************************************************************
@@ -412,11 +235,6 @@ public class Arena implements Listener
     public boolean hasStarted()
     {
         return started;
-    }
-
-    public ArrayList<String> getWatching()
-    {
-        return watching;
     }
 
     public int getWager()
@@ -429,24 +247,34 @@ public class Arena implements Listener
         return watching.size();
     }
 
-    public int getBoosterBroadcastRange()
-    {
-        return boosterBroadcastRange;
-    }
-
-    public Location getWatchLocation()
-    {
-        return watchLocation;
-    }
-
-    public HashMap<String, Loadout> getLoadoutMap()
+    public Map<String, Loadout> getLoadoutMap()
     {
         return loadoutMap;
+    }
+
+    public String getWorldName()
+    {
+        return worldName;
+    }
+
+    public CuboidArea getArenaCuboidArea()
+    {
+        return arenaCuboidArea;
+    }
+
+    public CuboidArea getWatchCuboidArea()
+    {
+        return watchCuboidArea;
     }
 
     public Booster getBooster()
     {
         return booster;
+    }
+
+    public int getBoosterBroadcastRange()
+    {
+        return boosterBroadcastRange;
     }
 
     /**************************************************************************
@@ -460,37 +288,55 @@ public class Arena implements Listener
         winnerReward = config.getInt("WinnerReward");
         maxCountdown = config.getInt("CountdownInSeconds");
         worldName = config.getString("WorldName");
+        boosterBroadcastRange = config.getInt("BoosterBroadcastRange");
         prestartCommands = config.getStringList("PrestartCommands");
         whitelistCommands = config.getStringList("WhitelistCommands");
         ticksPerCheck = config.getInt("TicksPerCheck");
         startDegradeOn = config.getInt("StartDegradeOn");
         degradeOn = config.getInt("DegradeOnTick");
-        tntUseDelay = config.getInt("ThrowingTNTUseDelay");
-        hookUseDelay = config.getInt("PlayerLauncherUseDelay");
-        deWebUseDelay = config.getInt("WebberUseDelay");
-        invisUseDelay = config.getInt("RodOfInvisibilityUseDelay");
-        boostUseDelay = config.getInt("BoostUseDelay");
-        chikunUseDelay = config.getInt("ChikunUseDelay");
-        stealUseDelay = config.getInt("StealUseDelay");
-        boosterBroadcastRange = config.getInt("BoosterBroadcastRange");
 
-        arenaBlocks = new ArenaBlocks(
-                config.getConfigurationSection("PointOne"),
-                config.getConfigurationSection("PointTwo"));
+        tntUseDelay = config.getInt("ItemUseDelays.ThrowingTNT");
+        hookUseDelay = config.getInt("ItemUseDelays.PlayerLauncher");
+        deWebUseDelay = config.getInt("ItemUseDelays.Webber");
+        invisUseDelay = config.getInt("ItemUseDelays.RodOfInvisibility");
+        boostUseDelay = config.getInt("ItemUseDelays.Boost");
+        chikunUseDelay = config.getInt("ItemUseDelays.Chikun");
+        stealUseDelay = config.getInt("ItemUseDelays.Steal");
 
-        Point watchPoint = new Point(config.getConfigurationSection("WatchPoint"));
-        watchLocation = watchPoint.toLocation(Bukkit.getWorld(worldName));
+        arenaCuboidArea = new CuboidArea(
+            config.getConfigurationSection("ArenaArea.One"),
+            config.getConfigurationSection("ArenaArea.Two"));
+
+        watchCuboidArea = new CuboidArea(
+            config.getConfigurationSection("WaitArea.One"),
+            config.getConfigurationSection("WaitArea.Two"));
+
+        arenaBlocks = new ArenaBlocks(arenaCuboidArea);
+    }
+
+    public void enableArena(CommandSender sender)
+    {
+        enabled = true;
+        sender.sendMessage(GOOD + "FloorIsLava enabled.");
+    }
+
+    public void disableArena(CommandSender sender)
+    {
+        forceStop(sender);
+        enabled = false;
+        sender.sendMessage(GOOD + "FloorIsLava disabled. " +
+            "Players will not be able to join until renabled.");
     }
 
     public void forceStart(CommandSender sender)
     {
-        if(started)
-        {
-            sender.sendMessage(BAD + "The arena has already started!");
-        }
-        else if(!enabled)
+        if(!enabled)
         {
             sender.sendMessage(BAD + "The arena is currently disabled!");
+        }
+        else if(started)
+        {
+            sender.sendMessage(BAD + "The arena has already started!");
         }
         else
         {
@@ -533,20 +379,6 @@ public class Arena implements Listener
         sender.sendMessage(GOOD + "Force-Stopped FloorIsLava.");
     }
 
-    public void enableArena(CommandSender sender)
-    {
-        enabled = true;
-        sender.sendMessage(Arena.GOOD + "FloorIsLava enabled.");
-    }
-
-    public void disableArena(CommandSender sender)
-    {
-        forceStop(sender);
-        enabled = false;
-        sender.sendMessage(Arena.GOOD + "FloorIsLava disabled. " +
-                "Players will not be able to join until renabled.");
-    }
-
     /**************************************************************************
      * Arena Event Methods
      *************************************************************************/
@@ -558,7 +390,7 @@ public class Arena implements Listener
         String playerName = player.getName();
         ItemStack heldItem = event.getItem();
 
-        if(!started || !playing.containsKey(playerName)) return;
+        if(!started || !playing.containsKey(playerName)) { return; }
 
         event.setCancelled(true);
 
@@ -566,7 +398,7 @@ public class Arena implements Listener
         {
             Location clicked = event.getClickedBlock().getLocation();
 
-            if(arenaBlocks.isInside(clicked))
+            if(arenaBlocks.getCuboidArea().isInside(clicked))
             {
                 event.getClickedBlock().setType(Material.AIR);
             }
@@ -575,42 +407,45 @@ public class Arena implements Listener
         }
 
         if(heldItem == null ||
-                (event.getAction() != Action.RIGHT_CLICK_AIR &&
-                        event.getAction() != Action.RIGHT_CLICK_BLOCK)) return;
+            (event.getAction() != Action.RIGHT_CLICK_AIR &&
+                event.getAction() != Action.RIGHT_CLICK_BLOCK)) { return; }
+
+        World world = Bukkit.getWorld(worldName);
+        Inventory inventory = player.getInventory();
+        ItemUseDelay itemUseDelay = delayMap.get(playerName);
+
+        if(itemUseDelay == null)
+        {
+            itemUseDelay = new ItemUseDelay();
+            delayMap.put(playerName, itemUseDelay);
+        }
 
         if(heldItem.getType().equals(Material.TNT))
         {
-            Long endOfDelayTime = tntUseDelayMap.getOrDefault(playerName, 0L);
+            long endTime = itemUseDelay.tnt;
 
-            if(System.currentTimeMillis() > endOfDelayTime)
+            if(System.currentTimeMillis() > endTime)
             {
-                if(heldItem.getAmount() == 1)
-                {
-                    player.getInventory().remove(heldItem);
-                }
-                else
-                {
-                    heldItem.setAmount(heldItem.getAmount() - 1);
-                }
+                decrementAmountOfItemStack(inventory, heldItem);
 
                 if(event.getAction() == Action.RIGHT_CLICK_BLOCK)
                 {
                     Location location = event.getClickedBlock().getLocation();
-                    TNTPrimed tnt = Bukkit.getWorld(worldName).spawn(location.add(0, 1, 0), TNTPrimed.class);
-                    tnt.setMetadata("fil", new FixedMetadataValue(plugin, "fil"));
+                    TNTPrimed tnt = world.spawn(location.add(0, 1, 0), TNTPrimed.class);
+                    tnt.setMetadata("FIL", new FixedMetadataValue(plugin, "FIL"));
                 }
                 else if(event.getAction() == Action.RIGHT_CLICK_AIR)
                 {
                     Location location = player.getLocation();
-                    TNTPrimed tnt = Bukkit.getWorld(worldName).spawn(location.add(0, 1, 0), TNTPrimed.class);
-                    tnt.setMetadata("fil", new FixedMetadataValue(plugin, "fil"));
+                    TNTPrimed tnt = world.spawn(location.add(0, 1, 0), TNTPrimed.class);
+                    tnt.setMetadata("FIL", new FixedMetadataValue(plugin, "FIL"));
 
                     Vector vector = player.getLocation().getDirection();
                     vector.add(new Vector(0.0, 0.15, 0.0));
                     tnt.setVelocity(vector);
                 }
 
-                tntUseDelayMap.put(playerName, System.currentTimeMillis() + tntUseDelay);
+                itemUseDelay.tnt = System.currentTimeMillis() + tntUseDelay;
             }
             else
             {
@@ -619,28 +454,22 @@ public class Arena implements Listener
         }
         else if(heldItem.getType().equals(Material.BLAZE_ROD))
         {
-            Long endOfDelayTime = invisUseDelayMap.getOrDefault(playerName, 0L);
+            long endTime = itemUseDelay.invis;
 
-            if(System.currentTimeMillis() > endOfDelayTime)
+            if(System.currentTimeMillis() > endTime)
             {
-                if(heldItem.getAmount() == 1)
-                {
-                    player.getInventory().remove(heldItem);
-                }
-                else
-                {
-                    heldItem.setAmount(heldItem.getAmount() - 1);
-                }
+                decrementAmountOfItemStack(inventory, heldItem);
 
                 for(Player other : Bukkit.getOnlinePlayers())
                 {
                     other.hidePlayer(player);
                 }
 
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                Bukkit.getScheduler().runTaskLater(plugin, () ->
+                {
                     Player playerToMakeVisible = Bukkit.getPlayer(playerName);
 
-                    if(playerToMakeVisible == null) return;
+                    if(playerToMakeVisible == null) { return; }
 
                     playerToMakeVisible.sendMessage(GOOD + "You are now visible!");
 
@@ -652,7 +481,8 @@ public class Arena implements Listener
 
                 player.sendMessage(GOOD + "You are now invisible!");
                 player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.1f);
-                invisUseDelayMap.put(playerName, System.currentTimeMillis() + invisUseDelay);
+
+                itemUseDelay.invis = System.currentTimeMillis() + invisUseDelay;
             }
             else
             {
@@ -661,9 +491,9 @@ public class Arena implements Listener
         }
         else if(heldItem.getType().equals(Material.FEATHER))
         {
-            Long endOfDelayTime = boostUseDelayMap.getOrDefault(playerName, 0L);
+            long endTime = itemUseDelay.boost;
 
-            if(System.currentTimeMillis() > endOfDelayTime)
+            if(System.currentTimeMillis() > endTime)
             {
                 if(isPlayerNearWebs(player, 1))
                 {
@@ -672,14 +502,7 @@ public class Arena implements Listener
                     return;
                 }
 
-                if(heldItem.getAmount() == 1)
-                {
-                    player.getInventory().remove(heldItem);
-                }
-                else
-                {
-                    heldItem.setAmount(heldItem.getAmount() - 1);
-                }
+                decrementAmountOfItemStack(inventory, heldItem);
 
                 Location loc = player.getLocation().clone();
                 loc.setPitch(-30f);
@@ -688,11 +511,11 @@ public class Arena implements Listener
                 vector.add(new Vector(0.0, 0.15, 0.0));
                 vector.multiply(2);
 
+                player.sendMessage(GOOD + "Woooooosh ...");
                 player.setVelocity(vector);
                 player.playSound(player.getLocation(), Sound.ENTITY_GHAST_SHOOT, 1f, 1f);
 
-                player.sendMessage(GOOD + "Woooooosh ...");
-                boostUseDelayMap.put(playerName, System.currentTimeMillis() + boostUseDelay);
+                itemUseDelay.boost = System.currentTimeMillis() + boostUseDelay;
             }
             else
             {
@@ -701,12 +524,12 @@ public class Arena implements Listener
         }
         else if(heldItem.getType().equals(Material.EGG))
         {
-            Long endOfDelayTime = chikunUseDelayMap.getOrDefault(playerName, 0L);
+            long endTime = itemUseDelay.chikun;
 
-            if(System.currentTimeMillis() > endOfDelayTime)
+            if(System.currentTimeMillis() > endTime)
             {
                 event.setCancelled(false);
-                chikunUseDelayMap.put(playerName, System.currentTimeMillis() + chikunUseDelay);
+                itemUseDelay.chikun = System.currentTimeMillis() + chikunUseDelay;
             }
             else
             {
@@ -731,11 +554,20 @@ public class Arena implements Listener
 
         event.setCancelled(true);
 
+        Inventory inventory = player.getInventory();
+        ItemUseDelay itemUseDelay = delayMap.get(playerName);
+
+        if(itemUseDelay == null)
+        {
+            itemUseDelay = new ItemUseDelay();
+            delayMap.put(playerName, itemUseDelay);
+        }
+
         if(heldItem.getType().equals(Material.TRIPWIRE_HOOK))
         {
-            Long endOfDelayTime = hookUseDelayMap.getOrDefault(playerName, 0L);
+            long endTime = itemUseDelay.hook;
 
-            if(System.currentTimeMillis() > endOfDelayTime)
+            if(System.currentTimeMillis() > endTime)
             {
                 if(isPlayerNearWebs(rightClicked, 2))
                 {
@@ -744,14 +576,7 @@ public class Arena implements Listener
                     return;
                 }
 
-                if(heldItem.getAmount() == 1)
-                {
-                    player.getInventory().remove(heldItem);
-                }
-                else
-                {
-                    heldItem.setAmount(heldItem.getAmount() - 1);
-                }
+                decrementAmountOfItemStack(inventory, heldItem);
 
                 Location playerLoc = player.getLocation();
                 playerLoc.setPitch(-30f);
@@ -764,7 +589,7 @@ public class Arena implements Listener
                 rightClicked.setVelocity(playerDir);
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_HURT, 1f, 1f);
 
-                hookUseDelayMap.put(playerName, System.currentTimeMillis() + hookUseDelay);
+                itemUseDelay.hook = System.currentTimeMillis() + hookUseDelay;
             }
             else
             {
@@ -773,22 +598,15 @@ public class Arena implements Listener
         }
         else if(heldItem.getType().equals(Material.WEB))
         {
-            Long endOfDelayTime = webUseDelayMap.getOrDefault(playerName, 0L);
+            long endTime = itemUseDelay.web;
 
-            if(System.currentTimeMillis() > endOfDelayTime)
+            if(System.currentTimeMillis() > endTime)
             {
-                if(heldItem.getAmount() == 1)
-                {
-                    player.getInventory().remove(heldItem);
-                }
-                else
-                {
-                    heldItem.setAmount(heldItem.getAmount() - 1);
-                }
+                decrementAmountOfItemStack(inventory, heldItem);
 
                 createWebsAroundPlayer(rightClicked, 2);
 
-                webUseDelayMap.put(playerName, System.currentTimeMillis() + deWebUseDelay);
+                itemUseDelay.web = System.currentTimeMillis() + deWebUseDelay;
             }
             else
             {
@@ -797,24 +615,18 @@ public class Arena implements Listener
         }
         else if(heldItem.getType().equals(Material.FLINT_AND_STEEL))
         {
-            Long endOfDelayTime = stealUseDelayMap.getOrDefault(playerName, 0L);
+            long endTime = itemUseDelay.steal;
 
-            if(System.currentTimeMillis() > endOfDelayTime)
+            if(System.currentTimeMillis() > endTime)
             {
-                if(heldItem.getAmount() == 1)
-                {
-                    player.getInventory().remove(heldItem);
-                }
-                else
-                {
-                    heldItem.setAmount(heldItem.getAmount() - 1);
-                }
+                decrementAmountOfItemStack(inventory, heldItem);
 
-                Random random = new Random();
                 int chance =  random.nextInt(100);
+
                 if(chance < 50)
                 {
                     player.sendMessage(BAD + "Badluck! Your attempt to steal an ability has backfired.");
+
                     if(!doesPlayerHaveItems(player))
                     {
                         player.sendMessage(BAD + "It appears you do not have any abilities left...");
@@ -840,7 +652,8 @@ public class Arena implements Listener
                         rightClicked.sendMessage(BAD + "A random ability has been stolen by " + player.getName() + "!");
                     }
                 }
-                stealUseDelayMap.put(playerName, System.currentTimeMillis() + stealUseDelay);
+
+                itemUseDelay.steal = System.currentTimeMillis() + stealUseDelay;
             }
             else
             {
@@ -899,29 +712,22 @@ public class Arena implements Listener
         List<Block> blocksToBeDestroyed = event.blockList();
         ListIterator<Block> iterator = blocksToBeDestroyed.listIterator();
 
-        if(!event.getEntity().hasMetadata("fil")) return;
+        if(!event.getEntity().hasMetadata("FIL")) { return; }
 
         event.setCancelled(true);
 
-        while(iterator.hasNext())
+        for(Block block : blocksToBeDestroyed)
         {
-            Block block = iterator.next();
-
-            if(arenaBlocks.isInside(block.getLocation()))
+            if(arenaCuboidArea.isInside(block.getLocation()))
             {
                 if(started)
                 {
                     block.setType(Material.AIR);
                 }
-
-                iterator.remove();
             }
         }
 
-        if(!blocksToBeDestroyed.isEmpty())
-        {
-            blocksToBeDestroyed.clear();
-        }
+        blocksToBeDestroyed.clear();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -930,8 +736,9 @@ public class Arena implements Listener
         Entity entity = event.getEntity();
 
         if(!event.getSpawnReason().equals(CreatureSpawnEvent.SpawnReason.EGG)
-                || !arenaBlocks.isInside(entity.getLocation())
-                || !event.getEntity().getType().equals(EntityType.CHICKEN)) return;
+            || !arenaCuboidArea.isInside(entity.getLocation())
+            || !event.getEntity().getType().equals(EntityType.CHICKEN)) { return; }
+
         event.setCancelled(false);
 
         entity.setCustomNameVisible(true);
@@ -978,10 +785,11 @@ public class Arena implements Listener
     @EventHandler
     public void onPlayerDamageByEntity(EntityDamageByEntityEvent event)
     {
-        if(event.getEntityType().equals(EntityType.PLAYER) && event.getDamager() instanceof  TNTPrimed)
+        Entity damager = event.getDamager();
+
+        if(event.getEntityType().equals(EntityType.PLAYER) && damager instanceof TNTPrimed)
         {
-            Entity tnt = event.getDamager();
-            if(tnt.hasMetadata("fil"))
+            if(damager.hasMetadata("FIL"))
             {
                 event.setCancelled(true);
                 event.setDamage(0);
@@ -990,12 +798,32 @@ public class Arena implements Listener
     }
 
     @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event)
+    {
+        if(!enabled) { return; }
+
+        Player player = event.getPlayer();
+        String playerName = player.getName();
+
+        if(watching.contains(playerName) || (!started && playing.containsKey(playerName)))
+        {
+            if(!watchCuboidArea.isInside(player.getLocation()))
+            {
+                leave(player);
+            }
+        }
+    }
+
+    @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event)
     {
-        String playerName = event.getPlayer().getName();
+        Player player = event.getPlayer();
+        String playerName = player.getName();
         Location locTo = event.getTo();
 
-        if(arenaBlocks.isInside(locTo) && !playing.containsKey(playerName))
+        if(arenaCuboidArea.isInside(locTo) &&
+            !playing.containsKey(playerName) &&
+            !player.hasPermission("FloorIsLava.Staff"))
         {
             event.setCancelled(true);
         }
@@ -1029,12 +857,169 @@ public class Arena implements Listener
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event)
     {
-        remove(event.getPlayer());
+        leave(event.getPlayer());
     }
 
     /*************************************************************************
      * Private Methods
      *************************************************************************/
+
+    private void start()
+    {
+        if(started)
+        {
+            throw new IllegalStateException("Arena#start() called while arena is running!");
+        }
+
+        World world = Bukkit.getWorld(worldName);
+
+        arenaBlocks.save(world);
+
+        Iterator<Map.Entry<String, PlayerState>> iter = playing.entrySet().iterator();
+
+        while(iter.hasNext())
+        {
+            Map.Entry<String, PlayerState> entry = iter.next();
+            Player player = Bukkit.getPlayer(entry.getKey());
+
+            if(player == null)
+            {
+                iter.remove();
+            }
+            else
+            {
+                String name = player.getName();
+                Loadout loadout = loadoutMap.get(name);
+                PlayerState playerState = new PlayerState();
+
+                player.closeInventory();
+                playerState.save(player);
+                playing.put(entry.getKey(), playerState);
+
+                for(PotionEffect e : player.getActivePotionEffects())
+                {
+                    player.removePotionEffect(e.getType());
+                }
+
+                for(String command : prestartCommands)
+                {
+                    Bukkit.getServer().dispatchCommand(player, command);
+                }
+
+                player.getInventory().setHelmet(null);
+                player.getInventory().setChestplate(null);
+                player.getInventory().setLeggings(null);
+                player.getInventory().setBoots(null);
+
+                player.teleport(arenaCuboidArea.getRandomLocationInside(world));
+                player.getInventory().setContents(getContentsFromLoadout(loadout));
+            }
+        }
+
+        arenaTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 1, ticksPerCheck);
+        started = true;
+    }
+
+    private void tick()
+    {
+        Iterator<Map.Entry<String, PlayerState>> iter = playing.entrySet().iterator();
+        World world = Bukkit.getWorld(worldName);
+        boolean boosterActive = booster.isActive();
+        int scaledBaseReward = (boosterActive? baseReward * 2 : baseReward);
+        int scaledWinnerReward = (boosterActive? winnerReward * 2 : winnerReward);
+
+        losePrize.setAmount(boosterActive ? 2 : 1);
+        winPrize.setAmount(boosterActive? 2 : 1);
+
+        while(iter.hasNext())
+        {
+            Map.Entry<String, PlayerState> entry = iter.next();
+            Player player = Bukkit.getPlayer(entry.getKey());
+            PlayerState state = entry.getValue();
+            Location location = player.getLocation();
+
+            if(!arenaCuboidArea.isInside(location))
+            {
+                iter.remove();
+                state.restoreInventory(player);
+                state.restoreLocation(player);
+                state.restoreGameMode(player);
+                player.setFireTicks(0);
+
+                player.sendMessage(GOOD + "Thanks for playing!");
+                player.getInventory().addItem(losePrize);
+                plugin.getEconomy().depositPlayer(entry.getKey(), scaledBaseReward);
+                player.teleport(watchCuboidArea.getRandomLocationInside(world));
+
+                broadcast(BAD + entry.getKey() + " fell! " + playing.size() + " left!");
+            }
+        }
+
+        if(playing.size() > 1)
+        {
+            if(elapsedTicks >= startDegradeOn && (elapsedTicks % degradeOn) == 0)
+            {
+                arenaBlocks.degradeBlocks(world, degradeLevel);
+                degradeLevel++;
+            }
+
+            elapsedTicks++;
+            return;
+        }
+
+        for(Map.Entry<String, PlayerState> entry : playing.entrySet())
+        {
+            Player player = Bukkit.getPlayer(entry.getKey());
+            PlayerState state = entry.getValue();
+
+            state.restoreInventory(player);
+            state.restoreLocation(player);
+            state.restoreGameMode(player);
+            player.setFireTicks(0);
+
+            plugin.getLogger().info(entry.getKey() + " won a round. Amount = " +
+                (scaledWinnerReward + wager));
+
+            player.sendMessage(GOOD + "You won! Here's a prize and $" +
+                (scaledWinnerReward + wager));
+            broadcast(GOOD + entry.getKey() + " won that round and a prize of $" +
+                (scaledWinnerReward + wager));
+
+            player.getInventory().addItem(winPrize);
+            plugin.getEconomy().depositPlayer(entry.getKey(), (scaledWinnerReward + wager));
+            wager = 0;
+
+            Firework firework = player.getWorld().spawn(
+                player.getLocation().add(0, 1, 0),
+                Firework.class);
+            FireworkMeta fireworkMeta = firework.getFireworkMeta();
+            fireworkMeta.addEffects(FireworkEffect.builder()
+                .flicker(false)
+                .trail(true)
+                .with(Type.BALL_LARGE)
+                .withColor(Color.BLUE)
+                .withFade(Color.WHITE)
+                .build());
+            firework.setFireworkMeta(fireworkMeta);
+        }
+
+        postStopCleanup();
+    }
+
+    private void countdownTick()
+    {
+        if(countdown <= 0)
+        {
+            countdownTask.cancel();
+            countdownTask = null;
+            start();
+        }
+        else
+        {
+            broadcast(GOOD + "Starting in " + countdown);
+            countdown--;
+        }
+    }
 
     private void resetCoundown()
     {
@@ -1094,6 +1079,11 @@ public class Arena implements Listener
         started = false;
     }
 
+    private void broadcast(String message)
+    {
+        broadcast(message, null);
+    }
+
     private void broadcast(String message, String exclude)
     {
         for(String name : watching)
@@ -1107,6 +1097,18 @@ public class Arena implements Listener
                     target.sendMessage(message);
                 }
             }
+        }
+    }
+
+    private void decrementAmountOfItemStack(Inventory inventory, ItemStack itemStack)
+    {
+        if(itemStack.getAmount() == 1)
+        {
+            inventory.remove(itemStack);
+        }
+        else
+        {
+            itemStack.setAmount(itemStack.getAmount() - 1);
         }
     }
 
@@ -1130,7 +1132,7 @@ public class Arena implements Listener
                         int zpos = pz + z;
 
                         if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.AIR) &&
-                                arenaBlocks.isInside(xpos, ypos, zpos))
+                                arenaCuboidArea.isInside(xpos, ypos, zpos))
                         {
                             world.getBlockAt(xpos, ypos, zpos).setType(Material.WEB);
                         }
@@ -1160,7 +1162,7 @@ public class Arena implements Listener
                         int zpos = pz + z;
 
                         if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.WEB) &&
-                                arenaBlocks.isInside(xpos, ypos, zpos))
+                                arenaCuboidArea.isInside(xpos, ypos, zpos))
                         {
                             return true;
                         }
@@ -1190,7 +1192,6 @@ public class Arena implements Listener
 
     private void takeAbility(Player to, Player from)
     {
-        Random random = new Random();
         int randomAbilitySlot = random.nextInt(7);
         while(from.getInventory().getStorageContents()[randomAbilitySlot] == null
                 || from.getInventory().getStorageContents()[randomAbilitySlot].getType()
@@ -1222,52 +1223,52 @@ public class Arena implements Listener
             return contents;
         }
 
-        if(loadout.tntCount > 0)
+        if(loadout.tnt > 0)
         {
             contents[c] = Loadout.TNT_ITEM.clone();
-            contents[c].setAmount(loadout.tntCount);
+            contents[c].setAmount(loadout.tnt);
             c++;
         }
 
-        if(loadout.hookCount > 0)
+        if(loadout.hook > 0)
         {
             contents[c] = Loadout.HOOK_ITEM.clone();
-            contents[c].setAmount(loadout.hookCount);
+            contents[c].setAmount(loadout.hook);
             c++;
         }
 
-        if(loadout.webCount > 0)
+        if(loadout.web > 0)
         {
             contents[c] = Loadout.WEB_ITEM.clone();
-            contents[c].setAmount(loadout.webCount);
+            contents[c].setAmount(loadout.web);
             c++;
         }
 
-        if(loadout.invisCount > 0)
+        if(loadout.invis > 0)
         {
             contents[c] = Loadout.INVIS_ITEM.clone();
-            contents[c].setAmount(loadout.invisCount);
+            contents[c].setAmount(loadout.invis);
             c++;
         }
 
-        if(loadout.boostCount > 0)
+        if(loadout.boost > 0)
         {
             contents[c] = Loadout.BOOST_ITEM.clone();
-            contents[c].setAmount(loadout.boostCount);
+            contents[c].setAmount(loadout.boost);
             c++;
         }
 
-        if(loadout.chikunCount > 0)
+        if(loadout.chikun > 0)
         {
             contents[c] = Loadout.CHIKUN_ITEM.clone();
-            contents[c].setAmount((loadout.chikunCount));
+            contents[c].setAmount((loadout.chikun));
             c++;
         }
 
-        if(loadout.stealCount > 0)
+        if(loadout.steal > 0)
         {
             contents[c] = Loadout.STEAL_ITEM.clone();
-            contents[c].setAmount((loadout.stealCount));
+            contents[c].setAmount((loadout.steal));
         }
 
         return contents;

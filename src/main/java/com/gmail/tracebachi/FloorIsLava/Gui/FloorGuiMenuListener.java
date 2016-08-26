@@ -28,7 +28,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Trace Bachi (tracebachi@gmail.com, BigBossZee) on 2/18/16.
@@ -48,28 +48,20 @@ public class FloorGuiMenuListener implements Listener
         Inventory inventory = event.getInventory();
         ItemStack clickedItem = event.getCurrentItem();
 
-        if(!inventory.getName().equals("Floor Is Lava Menu")) return;
+        if(!inventory.getName().equals("Floor Is Lava Menu")) { return; }
+
+        if(clickedItem == null) { return; }
 
         event.setCancelled(true);
 
-        HashMap<String, Loadout> loadoutMap = arena.getLoadoutMap();
+        Map<String, Loadout> loadoutMap = arena.getLoadoutMap();
         Player player = (Player) event.getWhoClicked();
         String name = player.getName();
         Loadout loadout = loadoutMap.get(name);
 
-        if(clickedItem == null) return;
-
         if(loadout == null)
         {
             loadout = new Loadout();
-            loadout.tntCount = 1;
-            loadout.hookCount = 0;
-            loadout.webCount = 0;
-            loadout.invisCount = 0;
-            loadout.boostCount = 0;
-            loadout.chikunCount = 0;
-            loadout.stealCount = 0;
-
             loadoutMap.put(name, loadout);
         }
 
@@ -77,20 +69,19 @@ public class FloorGuiMenuListener implements Listener
         if(matchesItemStack(FloorGuiMenu.JOIN_ITEM, clickedItem))
         {
             player.closeInventory();
-            arena.add(player);
+            arena.join(player);
             return;
         }
         else if(matchesItemStack(FloorGuiMenu.LEAVE_ITEM, clickedItem))
         {
             player.closeInventory();
-            arena.remove(player);
+            arena.leave(player);
             return;
         }
         else if(matchesItemStack(FloorGuiMenu.WATCH_ITEM, clickedItem))
         {
             player.closeInventory();
-            player.sendMessage(Arena.GOOD + "Teleporting to watch location ... ");
-            player.teleport(arena.getWatchLocation());
+            arena.watch(player);
             return;
         }
         else if(matchesItemStack(FloorGuiMenu.HELP_ITEM, clickedItem))
@@ -100,9 +91,20 @@ public class FloorGuiMenuListener implements Listener
         }
 
 		/* Loadout Items */
-        int change = event.getClick().equals(ClickType.LEFT) || event.getClick().equals(ClickType.DOUBLE_CLICK) ? 1 : -1;
+        ClickType clickType = event.getClick();
+        int maxPoints = (arena.getBooster().isActive() ? 10 : 5);
+        int change;
 
-        if(change == 1 && loadout.countSum() == (arena.getBooster().isActive() ? 10 : 5))
+        if(clickType.equals(ClickType.LEFT) || clickType.equals(ClickType.DOUBLE_CLICK))
+        {
+            change = 1;
+        }
+        else
+        {
+            change = -1;
+        }
+
+        if(change == 1 && loadout.countSum() == maxPoints)
         {
             player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
             return;
@@ -115,151 +117,74 @@ public class FloorGuiMenuListener implements Listener
 
         if(matchesItemStack(FloorGuiMenu.TNT_ITEM, clickedItem))
         {
-            int oldCount = loadout.tntCount;
-            loadout.tntCount = Math.max(0, loadout.tntCount + change);
-            updateLoadoutCounts(loadout, inventory);
+            int oldCount = loadout.tnt;
+            loadout.tnt = Math.max(0, loadout.tnt + change);
+            playSoundOnCondition(player, loadout.tnt != oldCount);
 
-            if(loadout.tntCount != oldCount)
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
-            }
-            else
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
-            }
+            int pointsAmount = maxPoints - loadout.countSum();
+            updateItemStackAmount(inventory, 13, pointsAmount);
+            updateItemStackAmount(inventory, 19, loadout.tnt);
         }
         else if(matchesItemStack(FloorGuiMenu.HOOK_ITEM, clickedItem))
         {
-            int oldCount = loadout.hookCount;
-            loadout.hookCount = Math.max(0, loadout.hookCount + change);
-            updateLoadoutCounts(loadout, inventory);
+            int oldCount = loadout.hook;
+            loadout.hook = Math.max(0, loadout.hook + change);
+            playSoundOnCondition(player, loadout.hook != oldCount);
 
-            if(loadout.hookCount != oldCount)
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
-            }
-            else
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
-            }
+            int pointsAmount = maxPoints - loadout.countSum();
+            updateItemStackAmount(inventory, 13, pointsAmount);
+            updateItemStackAmount(inventory, 20, loadout.hook);
         }
         else if(matchesItemStack(FloorGuiMenu.WEB_ITEM, clickedItem))
         {
-            int oldCount = loadout.webCount;
-            loadout.webCount = Math.max(0, loadout.webCount + change);
-            updateLoadoutCounts(loadout, inventory);
+            int oldCount = loadout.web;
+            loadout.web = Math.max(0, loadout.web + change);
+            playSoundOnCondition(player, loadout.web != oldCount);
 
-            if(loadout.webCount != oldCount)
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
-            }
-            else
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
-            }
+            int pointsAmount = maxPoints - loadout.countSum();
+            updateItemStackAmount(inventory, 13, pointsAmount);
+            updateItemStackAmount(inventory, 21, loadout.web);
         }
         else if(matchesItemStack(FloorGuiMenu.INVIS_ITEM, clickedItem))
         {
-            int oldCount = loadout.invisCount;
-            loadout.invisCount = Math.max(0, loadout.invisCount + change);
-            updateLoadoutCounts(loadout, inventory);
+            int oldCount = loadout.invis;
+            loadout.invis = Math.max(0, loadout.invis + change);
+            playSoundOnCondition(player, loadout.invis != oldCount);
 
-            if(loadout.invisCount != oldCount)
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
-            }
-            else
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
-            }
+            int pointsAmount = maxPoints - loadout.countSum();
+            updateItemStackAmount(inventory, 13, pointsAmount);
+            updateItemStackAmount(inventory, 22, loadout.invis);
         }
         else if(matchesItemStack(FloorGuiMenu.BOOST_ITEM, clickedItem))
         {
-            int oldCount = loadout.boostCount;
-            loadout.boostCount = Math.max(0, loadout.boostCount + change);
-            updateLoadoutCounts(loadout, inventory);
+            int oldCount = loadout.boost;
+            loadout.boost = Math.max(0, loadout.boost + change);
+            playSoundOnCondition(player, loadout.boost != oldCount);
 
-            if(loadout.boostCount != oldCount)
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
-            }
-            else
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
-            }
+            int pointsAmount = maxPoints - loadout.countSum();
+            updateItemStackAmount(inventory, 13, pointsAmount);
+            updateItemStackAmount(inventory, 23, loadout.boost);
         }
         else if(matchesItemStack(FloorGuiMenu.CHIKUN_ITEM, clickedItem))
         {
-            int oldCount = loadout.chikunCount;
-            loadout.chikunCount = Math.max(0, loadout.chikunCount + change);
-            updateLoadoutCounts(loadout, inventory);
+            int oldCount = loadout.chikun;
+            loadout.chikun = Math.max(0, loadout.chikun + change);
+            playSoundOnCondition(player, loadout.chikun != oldCount);
 
-            if(loadout.chikunCount != oldCount)
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
-            }
-            else
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
-            }
+            int pointsAmount = maxPoints - loadout.countSum();
+            updateItemStackAmount(inventory, 13, pointsAmount);
+            updateItemStackAmount(inventory, 24, loadout.chikun);
         }
         else if(matchesItemStack(FloorGuiMenu.STEAL_ITEM, clickedItem))
         {
-            int oldCount = loadout.stealCount;
-            loadout.stealCount = Math.max(0, loadout.stealCount + change);
-            updateLoadoutCounts(loadout, inventory);
+            int oldCount = loadout.steal;
+            loadout.steal = Math.max(0, loadout.steal + change);
+            playSoundOnCondition(player, loadout.steal != oldCount);
 
-            if(loadout.stealCount != oldCount)
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
-            }
-            else
-            {
-                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
-            }
+            int pointsAmount = maxPoints - loadout.countSum();
+            updateItemStackAmount(inventory, 13, pointsAmount);
+            updateItemStackAmount(inventory, 25, loadout.steal);
         }
-    }
-
-    private void updateLoadoutCounts(Loadout loadout, Inventory inventory)
-    {
-        int tntAmount = 1;
-        int hookAmount = 0;
-        int webAmount = 0;
-        int invisAmount = 0;
-        int boostAmount = 0;
-        int chikunAmount = 0;
-        int stealAmount = 0;
-        int pointsAmount = arena.getBooster().isActive() ? 9 : 4;
-
-        if(loadout != null)
-        {
-            tntAmount = loadout.tntCount;
-            hookAmount = loadout.hookCount;
-            webAmount = loadout.webCount;
-            invisAmount = loadout.invisCount;
-            boostAmount = loadout.boostCount;
-            chikunAmount = loadout.chikunCount;
-            stealAmount = loadout.stealCount;
-            pointsAmount = (arena.getBooster().isActive() ? 10 : 5) - loadout.countSum();
-        }
-
-        FloorGuiMenu.POINTS_ITEM.setAmount(pointsAmount);
-        FloorGuiMenu.TNT_ITEM.setAmount(tntAmount);
-        FloorGuiMenu.HOOK_ITEM.setAmount(hookAmount);
-        FloorGuiMenu.WEB_ITEM.setAmount(webAmount);
-        FloorGuiMenu.INVIS_ITEM.setAmount(invisAmount);
-        FloorGuiMenu.BOOST_ITEM.setAmount(boostAmount);
-        FloorGuiMenu.CHIKUN_ITEM.setAmount(chikunAmount);
-        FloorGuiMenu.STEAL_ITEM.setAmount(stealAmount);
-
-        inventory.setItem(13, FloorGuiMenu.POINTS_ITEM);
-        inventory.setItem(19, FloorGuiMenu.TNT_ITEM);
-        inventory.setItem(20, FloorGuiMenu.HOOK_ITEM);
-        inventory.setItem(21, FloorGuiMenu.WEB_ITEM);
-        inventory.setItem(22, FloorGuiMenu.INVIS_ITEM);
-        inventory.setItem(23, FloorGuiMenu.BOOST_ITEM);
-        inventory.setItem(24, FloorGuiMenu.CHIKUN_ITEM);
-        inventory.setItem(25, FloorGuiMenu.STEAL_ITEM);
     }
 
     private boolean matchesItemStack(ItemStack original, ItemStack input)
@@ -289,6 +214,26 @@ public class FloorGuiMenuListener implements Listener
                 return originalHasMeta == inputHasMeta;
             }
         }
+
         return false;
+    }
+
+    private void playSoundOnCondition(Player player, boolean flag)
+    {
+        if(flag)
+        {
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
+        }
+        else
+        {
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
+        }
+    }
+
+    private void updateItemStackAmount(Inventory inventory, int slot, int amount)
+    {
+        ItemStack itemStack = inventory.getItem(slot);
+        itemStack.setAmount(amount);
+        inventory.setItem(slot, itemStack);
     }
 }

@@ -16,10 +16,11 @@
  */
 package com.gmail.tracebachi.FloorIsLava.Utils;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import static org.bukkit.ChatColor.*;
 
 /**
  * Created by Trace Bachi (tracebachi@gmail.com, BigBossZee) on 2/17/16.
@@ -37,46 +38,57 @@ public class Loadout
     static
     {
         ItemMeta tntMeta = TNT_ITEM.getItemMeta();
-        tntMeta.setDisplayName(ChatColor.DARK_RED + "\u2622"
-                    + ChatColor.GOLD + " Throwing TNT "
-                    + ChatColor.DARK_RED + "\u2622");
+        tntMeta.setDisplayName(DARK_RED + "\u2622"
+                    + GOLD + " Throwing TNT "
+                    + DARK_RED + "\u2622");
         TNT_ITEM.setItemMeta(tntMeta);
 
         ItemMeta hookMeta = HOOK_ITEM.getItemMeta();
-        hookMeta.setDisplayName(ChatColor.AQUA + "Player Launcher");
+        hookMeta.setDisplayName(AQUA + "Player Launcher");
         HOOK_ITEM.setItemMeta(hookMeta);
 
         ItemMeta dewebMeta = WEB_ITEM.getItemMeta();
-        dewebMeta.setDisplayName(ChatColor.GREEN + "Webber");
+        dewebMeta.setDisplayName(GREEN + "Webber");
         WEB_ITEM.setItemMeta(dewebMeta);
 
         ItemMeta invisMeta = INVIS_ITEM.getItemMeta();
-        invisMeta.setDisplayName(ChatColor.GRAY + "Rod of Invisibility");
+        invisMeta.setDisplayName(GRAY + "Rod of Invisibility");
         INVIS_ITEM.setItemMeta(invisMeta);
 
         ItemMeta boostMeta = BOOST_ITEM.getItemMeta();
-        boostMeta.setDisplayName(ChatColor.YELLOW + "Boost");
+        boostMeta.setDisplayName(YELLOW + "Boost");
         BOOST_ITEM.setItemMeta(boostMeta);
 
         ItemMeta chikunMeta = CHIKUN_ITEM.getItemMeta();
-        chikunMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "Chikun Bomb");
+        chikunMeta.setDisplayName(LIGHT_PURPLE + "Chikun Bomb");
         CHIKUN_ITEM.setItemMeta(chikunMeta);
 
         ItemMeta stealMeta = STEAL_ITEM.getItemMeta();
-        stealMeta.setDisplayName(ChatColor.BLUE + "Steal");
+        stealMeta.setDisplayName(BLUE + "Steal");
         STEAL_ITEM.setItemMeta(stealMeta);
     }
 
-    public int tntCount;
-    public int hookCount;
-    public int webCount;
-    public int invisCount;
-    public int boostCount;
-    public int chikunCount;
-    public int stealCount;
+    public int tnt;
+    public int hook;
+    public int web;
+    public int invis;
+    public int boost;
+    public int chikun;
+    public int steal;
+
+    public Loadout()
+    {
+        tnt = 0;
+        hook = 0;
+        web = 0;
+        invis = 0;
+        boost = 0;
+        chikun = 0;
+        steal = 0;
+    }
 
     public int countSum()
     {
-        return tntCount + hookCount + webCount + invisCount + boostCount + chikunCount + stealCount;
+        return tnt + hook + web + invis + boost + chikun + steal;
     }
 }

@@ -13,52 +13,42 @@ CountdownInSeconds: 5
 # Arena's world
 WorldName: world
 
-# Delay in milliseconds between TNT uses
-ThrowingTNTUseDelay: 5000
-
-# Delay in milliseconds between player launcher uses
-PlayerLauncherUseDelay: 5000
-
-# Delay in milliseconds between webber uses
-WebberUseDelay: 5000
-
-# Delay in milliseconds between invisibility rod uses
-RodOfInvisibilityUseDelay: 5000
-
-# Delay in milliseconds between boost uses
-BoostUseDelay: 5000
-
-# Delay in milliseconds between chikun bomb uses
-ChikunUseDelay: 5000
-
-# Delay in milliseconds between steal uses
-StealUseDelay: 5000
-
 # Range to broadcast booster messages.
 BoosterBroadcastRange: 100
 
-# PointOne and PointTwo make up the cuboid where players can break blocks
-# Being outside this cuboid will remove players from the arena
-PointOne:
-  x: 0
-  y: 0
-  z: 0
-  yaw: 0.0
-  pitch: 0.0
-PointTwo:
-  x: 0
-  y: 0
-  z: 0
-  yaw: 0.0
-  pitch: 0.0
+# Delays in milliseconds between item uses
+ItemUseDelays:
+  ThrowingTNT: 5000
+  PlayerLauncher: 5000
+  Webber: 5000
+  RodOfInvisibility: 5000
+  Boost: 5000
+  Chikun: 5000
+  Steal: 5000
 
-# Location that players will be teleported to when they use /floor watch
-WatchPoint:
-  x: 0
-  y: 0
-  z: 0
-  yaw: 0.0
-  pitch: 0.0
+# Points make up the cuboid where players can break blocks
+# Being outside this cuboid will leave players from the arena
+ArenaArea:
+  One:
+    x: 0
+    y: 0
+    z: 0
+  Two:
+    x: 0
+    y: 0
+    z: 0
+
+# Points make up the cuboid where players will wait or watch
+# Being outside this cuboid will leave players from the waiting/watching list
+WaitArea:
+  One:
+    x: 0
+    y: 0
+    z: 0
+  Two:
+    x: 0
+    y: 0
+    z: 0
 
 # Commands run by the player before entering the arena
 PrestartCommands:
