@@ -912,7 +912,7 @@ public class Arena implements Listener
                 player.getInventory().setBoots(null);
 
                 player.teleport(arenaCuboidArea.getRandomLocationInside(world));
-                player.getInventory().setContents(getContentsFromLoadout(loadout));
+                player.getInventory().setStorageContents(getContentsFromLoadout(loadout));
             }
         }
 
