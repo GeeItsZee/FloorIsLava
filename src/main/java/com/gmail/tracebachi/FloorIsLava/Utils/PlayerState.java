@@ -41,7 +41,7 @@ public class PlayerState
 
         location = target.getLocation();
         armor = target.getInventory().getArmorContents();
-        content = target.getInventory().getStorageContents();
+        content = target.getInventory().getContents();
     }
 
     public void restoreInventory(Player target)
