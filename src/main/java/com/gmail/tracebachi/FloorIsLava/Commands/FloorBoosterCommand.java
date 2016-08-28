@@ -69,7 +69,7 @@ public class FloorBoosterCommand implements CommandExecutor
             if(booster.isActive())
             {
                 sender.sendMessage(BAD + "Booster is already active. "
-                            + "To start another one, first type: /mfloor Booster stop");
+                            + "To start another one, first type: /floorbooster stop");
                 return true;
             }
 
@@ -82,14 +82,14 @@ public class FloorBoosterCommand implements CommandExecutor
 
             Booster.BoosterType type = Booster.BoosterType.PERMANENT;
 
-            if(args.length >= 3)
+            if(args.length >= 2)
             {
-                String requestedType = args[2];
+                String requestedType = args[1];
                 Booster.BoosterType newType = Booster.BoosterType.match(requestedType);
 
                 if(newType == null)
                 {
-                    sender.sendMessage(BAD + "/mfloor Booster start [1h, 2h, 4h]");
+                    sender.sendMessage(BAD + "/floorbooster start [1h, 2h, 4h]");
                     return true;
                 }
 
