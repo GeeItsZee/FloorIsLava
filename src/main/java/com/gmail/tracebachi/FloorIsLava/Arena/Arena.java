@@ -1102,6 +1102,7 @@ public class Arena implements Listener
 
     private void decrementAmountOfItemStack(Inventory inventory, ItemStack itemStack)
     {
+        System.out.println("Decrement amount of item stack called");
         if(itemStack.getAmount() == 1)
         {
             inventory.remove(itemStack);
