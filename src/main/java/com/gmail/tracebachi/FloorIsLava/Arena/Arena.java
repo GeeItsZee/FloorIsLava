@@ -242,9 +242,9 @@ public class Arena implements Listener
         return wager;
     }
 
-    public int getWatchingSize()
+    public int getPlayingSize()
     {
-        return watching.size();
+        return playing.size();
     }
 
     public Map<String, Loadout> getLoadoutMap()
@@ -1086,7 +1086,7 @@ public class Arena implements Listener
 
     private void broadcast(String message, String exclude)
     {
-        for(String name : watching)
+        for(String name : playing.keySet())
         {
             if(!name.equalsIgnoreCase(exclude))
             {
