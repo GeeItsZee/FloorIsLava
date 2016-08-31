@@ -170,7 +170,10 @@ public class Arena implements Listener
         player.sendMessage(GOOD + "You have joined FloorIsLava.");
 
         World world = Bukkit.getWorld(worldName);
-        player.teleport(watchCuboidArea.getRandomLocationInside(world));
+        Location location = watchCuboidArea.getRandomLocationInside(world);
+        location.setYaw(player.getLocation().getYaw());
+        location.setPitch(player.getLocation().getPitch());
+        player.teleport(location);
     }
 
     public void watch(Player player)
@@ -186,7 +189,10 @@ public class Arena implements Listener
         player.sendMessage(GOOD + "Teleporting to FloorIsLava viewing area ...");
 
         World world = Bukkit.getWorld(worldName);
-        player.teleport(watchCuboidArea.getRandomLocationInside(world));
+        Location location = watchCuboidArea.getRandomLocationInside(world);
+        location.setYaw(player.getLocation().getYaw());
+        location.setPitch(player.getLocation().getPitch());
+        player.teleport(location);
     }
 
     public void leave(Player player)
@@ -1086,7 +1092,7 @@ public class Arena implements Listener
 
     private void broadcast(String message, String exclude)
     {
-        for(String name : playing.keySet())
+        playing.keySet().forEach(name ->
         {
             if(!name.equalsIgnoreCase(exclude))
             {
@@ -1097,7 +1103,7 @@ public class Arena implements Listener
                     target.sendMessage(message);
                 }
             }
-        }
+        });
     }
 
     private void decrementAmountOfItemStack(Inventory inventory, ItemStack itemStack)
