@@ -165,12 +165,15 @@ public class Arena implements Listener
 
         broadcast(GOOD + playerName + " has joined.", playerName);
         playing.put(playerName, null);
-        resetCoundown();
+        resetCountdown();
 
         player.sendMessage(GOOD + "You have joined FloorIsLava.");
 
         World world = Bukkit.getWorld(worldName);
-        player.teleport(watchCuboidArea.getRandomLocationInside(world));
+        Location location = watchCuboidArea.getRandomLocationInside(world);
+        location.setYaw(player.getLocation().getYaw());
+        location.setPitch(player.getLocation().getPitch());
+        player.teleport(location);
     }
 
     public void watch(Player player)
@@ -186,7 +189,10 @@ public class Arena implements Listener
         player.sendMessage(GOOD + "Teleporting to FloorIsLava viewing area ...");
 
         World world = Bukkit.getWorld(worldName);
-        player.teleport(watchCuboidArea.getRandomLocationInside(world));
+        Location location = watchCuboidArea.getRandomLocationInside(world);
+        location.setYaw(player.getLocation().getYaw());
+        location.setPitch(player.getLocation().getPitch());
+        player.teleport(location);
     }
 
     public void leave(Player player)
@@ -220,7 +226,7 @@ public class Arena implements Listener
 
         if(!started && playing.size() < minimumPlayers)
         {
-            resetCoundown();
+            resetCountdown();
         }
 
         player.sendMessage(GOOD + "You have left FloorIsLava.");
@@ -242,9 +248,9 @@ public class Arena implements Listener
         return wager;
     }
 
-    public int getWatchingSize()
+    public int getPlayingSize()
     {
-        return watching.size();
+        return playing.size();
     }
 
     public Map<String, Loadout> getLoadoutMap()
@@ -1021,7 +1027,7 @@ public class Arena implements Listener
         }
     }
 
-    private void resetCoundown()
+    private void resetCountdown()
     {
         if(countdownTask != null)
         {
@@ -1047,6 +1053,19 @@ public class Arena implements Listener
         elapsedTicks = 0;
 
         for(String playerName : watching)
+        {
+            Player player = Bukkit.getPlayerExact(playerName);
+
+            if(player != null)
+            {
+                for(Player other : Bukkit.getOnlinePlayers())
+                {
+                    other.showPlayer(player);
+                }
+            }
+        }
+
+        for(String playerName : playing.keySet())
         {
             Player player = Bukkit.getPlayerExact(playerName);
 
@@ -1086,7 +1105,7 @@ public class Arena implements Listener
 
     private void broadcast(String message, String exclude)
     {
-        for(String name : watching)
+        playing.keySet().forEach(name ->
         {
             if(!name.equalsIgnoreCase(exclude))
             {
@@ -1097,7 +1116,7 @@ public class Arena implements Listener
                     target.sendMessage(message);
                 }
             }
-        }
+        });
     }
 
     private void decrementAmountOfItemStack(Inventory inventory, ItemStack itemStack)

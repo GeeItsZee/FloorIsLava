@@ -83,7 +83,7 @@ public class CuboidArea
     {
         return new Location(world,
             lower.x() + 1 + RANDOM.nextInt(upper.x() - lower.x() - 1) + 0.5,
-            Math.min(lower.y() + 3, upper.y() - 1),
+            upper.y() - 1,
             lower.z() + 1 + RANDOM.nextInt(upper.z() - lower.z() - 1) + 0.5);
     }
 }

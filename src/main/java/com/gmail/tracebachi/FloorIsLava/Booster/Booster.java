@@ -101,7 +101,7 @@ public class Booster
         task = null;
     }
 
-    public String getFormattedTimeLeft()
+    private String getFormattedTimeLeft()
     {
         long timeLeft = timeActivated + boosterType.getTime() - System.currentTimeMillis();
         int hours = 0;

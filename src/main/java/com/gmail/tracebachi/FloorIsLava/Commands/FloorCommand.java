@@ -66,7 +66,7 @@ public class FloorCommand implements CommandExecutor
             String status = arena.hasStarted() ? "started." : "waiting.";
 
             player.sendMessage(GOOD + "There are " +
-                arena.getWatchingSize() + " players " + status);
+                arena.getPlayingSize() + " players " + status);
             player.sendMessage(GOOD + "Wager: $" +
                 arena.getWager() + "");
         }
