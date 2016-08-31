@@ -165,7 +165,7 @@ public class Arena implements Listener
 
         broadcast(GOOD + playerName + " has joined.", playerName);
         playing.put(playerName, null);
-        resetCoundown();
+        resetCountdown();
 
         player.sendMessage(GOOD + "You have joined FloorIsLava.");
 
@@ -226,7 +226,7 @@ public class Arena implements Listener
 
         if(!started && playing.size() < minimumPlayers)
         {
-            resetCoundown();
+            resetCountdown();
         }
 
         player.sendMessage(GOOD + "You have left FloorIsLava.");
@@ -1027,7 +1027,7 @@ public class Arena implements Listener
         }
     }
 
-    private void resetCoundown()
+    private void resetCountdown()
     {
         if(countdownTask != null)
         {
@@ -1053,6 +1053,19 @@ public class Arena implements Listener
         elapsedTicks = 0;
 
         for(String playerName : watching)
+        {
+            Player player = Bukkit.getPlayerExact(playerName);
+
+            if(player != null)
+            {
+                for(Player other : Bukkit.getOnlinePlayers())
+                {
+                    other.showPlayer(player);
+                }
+            }
+        }
+
+        for(String playerName : playing.keySet())
         {
             Player player = Bukkit.getPlayerExact(playerName);
 
