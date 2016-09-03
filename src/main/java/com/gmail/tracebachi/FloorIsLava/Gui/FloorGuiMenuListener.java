@@ -106,12 +106,12 @@ public class FloorGuiMenuListener implements Listener
 
         if(change == 1 && loadout.countSum() == maxPoints)
         {
-            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
+            player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
             return;
         }
         else if(change == -1 && loadout.countSum() == 0)
         {
-            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
+            player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
             return;
         }
 
@@ -122,8 +122,8 @@ public class FloorGuiMenuListener implements Listener
             playSoundOnCondition(player, loadout.tnt != oldCount);
 
             int pointsAmount = maxPoints - loadout.countSum();
-            updateItemStackAmount(inventory, 13, pointsAmount);
-            updateItemStackAmount(inventory, 19, loadout.tnt);
+            updateItemStackAmount(inventory, FloorGuiMenu.POINTS_ITEM, 13, pointsAmount);
+            updateItemStackAmount(inventory, FloorGuiMenu.TNT_ITEM, 19, loadout.tnt);
         }
         else if(matchesItemStack(FloorGuiMenu.HOOK_ITEM, clickedItem))
         {
@@ -132,8 +132,8 @@ public class FloorGuiMenuListener implements Listener
             playSoundOnCondition(player, loadout.hook != oldCount);
 
             int pointsAmount = maxPoints - loadout.countSum();
-            updateItemStackAmount(inventory, 13, pointsAmount);
-            updateItemStackAmount(inventory, 20, loadout.hook);
+            updateItemStackAmount(inventory, FloorGuiMenu.POINTS_ITEM, 13, pointsAmount);
+            updateItemStackAmount(inventory, FloorGuiMenu.HOOK_ITEM, 20, loadout.hook);
         }
         else if(matchesItemStack(FloorGuiMenu.WEB_ITEM, clickedItem))
         {
@@ -142,8 +142,8 @@ public class FloorGuiMenuListener implements Listener
             playSoundOnCondition(player, loadout.web != oldCount);
 
             int pointsAmount = maxPoints - loadout.countSum();
-            updateItemStackAmount(inventory, 13, pointsAmount);
-            updateItemStackAmount(inventory, 21, loadout.web);
+            updateItemStackAmount(inventory, FloorGuiMenu.POINTS_ITEM, 13, pointsAmount);
+            updateItemStackAmount(inventory, FloorGuiMenu.WEB_ITEM, 21, loadout.web);
         }
         else if(matchesItemStack(FloorGuiMenu.INVIS_ITEM, clickedItem))
         {
@@ -152,8 +152,8 @@ public class FloorGuiMenuListener implements Listener
             playSoundOnCondition(player, loadout.invis != oldCount);
 
             int pointsAmount = maxPoints - loadout.countSum();
-            updateItemStackAmount(inventory, 13, pointsAmount);
-            updateItemStackAmount(inventory, 22, loadout.invis);
+            updateItemStackAmount(inventory, FloorGuiMenu.POINTS_ITEM, 13, pointsAmount);
+            updateItemStackAmount(inventory, FloorGuiMenu.INVIS_ITEM, 22, loadout.invis);
         }
         else if(matchesItemStack(FloorGuiMenu.BOOST_ITEM, clickedItem))
         {
@@ -162,8 +162,8 @@ public class FloorGuiMenuListener implements Listener
             playSoundOnCondition(player, loadout.boost != oldCount);
 
             int pointsAmount = maxPoints - loadout.countSum();
-            updateItemStackAmount(inventory, 13, pointsAmount);
-            updateItemStackAmount(inventory, 23, loadout.boost);
+            updateItemStackAmount(inventory, FloorGuiMenu.POINTS_ITEM, 13, pointsAmount);
+            updateItemStackAmount(inventory, FloorGuiMenu.BOOST_ITEM, 23, loadout.boost);
         }
         else if(matchesItemStack(FloorGuiMenu.CHIKUN_ITEM, clickedItem))
         {
@@ -172,8 +172,8 @@ public class FloorGuiMenuListener implements Listener
             playSoundOnCondition(player, loadout.chikun != oldCount);
 
             int pointsAmount = maxPoints - loadout.countSum();
-            updateItemStackAmount(inventory, 13, pointsAmount);
-            updateItemStackAmount(inventory, 24, loadout.chikun);
+            updateItemStackAmount(inventory, FloorGuiMenu.POINTS_ITEM, 13, pointsAmount);
+            updateItemStackAmount(inventory, FloorGuiMenu.CHIKUN_ITEM, 24, loadout.chikun);
         }
         else if(matchesItemStack(FloorGuiMenu.STEAL_ITEM, clickedItem))
         {
@@ -182,8 +182,8 @@ public class FloorGuiMenuListener implements Listener
             playSoundOnCondition(player, loadout.steal != oldCount);
 
             int pointsAmount = maxPoints - loadout.countSum();
-            updateItemStackAmount(inventory, 13, pointsAmount);
-            updateItemStackAmount(inventory, 25, loadout.steal);
+            updateItemStackAmount(inventory, FloorGuiMenu.POINTS_ITEM, 13, pointsAmount);
+            updateItemStackAmount(inventory, FloorGuiMenu.STEAL_ITEM, 25, loadout.steal);
         }
     }
 
@@ -222,18 +222,19 @@ public class FloorGuiMenuListener implements Listener
     {
         if(flag)
         {
-            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
+            player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
         }
         else
         {
-            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
+            player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
         }
     }
 
-    private void updateItemStackAmount(Inventory inventory, int slot, int amount)
+    private void updateItemStackAmount(Inventory inventory, ItemStack itemStack,
+                                       int slot, int amount)
     {
-        ItemStack itemStack = inventory.getItem(slot);
-        itemStack.setAmount(amount);
-        inventory.setItem(slot, itemStack);
+        ItemStack cloned = itemStack.clone();
+        cloned.setAmount(amount);
+        inventory.setItem(slot, cloned);
     }
 }
