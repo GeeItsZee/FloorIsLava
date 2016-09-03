@@ -165,12 +165,15 @@ public class Arena implements Listener
 
         broadcast(GOOD + playerName + " has joined.", playerName);
         playing.put(playerName, null);
-        resetCoundown();
+        resetCountdown();
 
         player.sendMessage(GOOD + "You have joined FloorIsLava.");
 
         World world = Bukkit.getWorld(worldName);
-        player.teleport(watchCuboidArea.getRandomLocationInside(world));
+        Location location = watchCuboidArea.getRandomLocationInside(world);
+        location.setYaw(player.getLocation().getYaw());
+        location.setPitch(player.getLocation().getPitch());
+        player.teleport(location);
     }
 
     public void watch(Player player)
@@ -186,7 +189,10 @@ public class Arena implements Listener
         player.sendMessage(GOOD + "Teleporting to FloorIsLava viewing area ...");
 
         World world = Bukkit.getWorld(worldName);
-        player.teleport(watchCuboidArea.getRandomLocationInside(world));
+        Location location = watchCuboidArea.getRandomLocationInside(world);
+        location.setYaw(player.getLocation().getYaw());
+        location.setPitch(player.getLocation().getPitch());
+        player.teleport(location);
     }
 
     public void leave(Player player)
@@ -220,7 +226,7 @@ public class Arena implements Listener
 
         if(!started && playing.size() < minimumPlayers)
         {
-            resetCoundown();
+            resetCountdown();
         }
 
         player.sendMessage(GOOD + "You have left FloorIsLava.");
@@ -242,7 +248,7 @@ public class Arena implements Listener
         return wager;
     }
 
-    public int getWatchingSize()
+    public int getPlayingSize()
     {
         return watching.size();
     }
@@ -1021,7 +1027,7 @@ public class Arena implements Listener
         }
     }
 
-    private void resetCoundown()
+    private void resetCountdown()
     {
         if(countdownTask != null)
         {
@@ -1046,7 +1052,7 @@ public class Arena implements Listener
         degradeLevel = 0;
         elapsedTicks = 0;
 
-        for(String playerName : watching)
+        for(String playerName : playing.keySet())
         {
             Player player = Bukkit.getPlayerExact(playerName);
 
@@ -1098,11 +1104,23 @@ public class Arena implements Listener
                 }
             }
         }
+
+        for(String name : playing.keySet())
+        {
+            if(!name.equalsIgnoreCase(exclude))
+            {
+                Player target = Bukkit.getPlayer(name);
+
+                if(target != null)
+                {
+                    target.sendMessage(message);
+                }
+            }
+        }
     }
 
     private void decrementAmountOfItemStack(Inventory inventory, ItemStack itemStack)
     {
-        System.out.println("Decrement amount of item stack called");
         if(itemStack.getAmount() == 1)
         {
             inventory.remove(itemStack);
