@@ -106,12 +106,12 @@ public class FloorGuiMenuListener implements Listener
 
         if(change == 1 && loadout.countSum() == maxPoints)
         {
-            player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
             return;
         }
         else if(change == -1 && loadout.countSum() == 0)
         {
-            player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
             return;
         }
 
@@ -222,11 +222,11 @@ public class FloorGuiMenuListener implements Listener
     {
         if(flag)
         {
-            player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1, 1);
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
         }
         else
         {
-            player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
         }
     }
 
