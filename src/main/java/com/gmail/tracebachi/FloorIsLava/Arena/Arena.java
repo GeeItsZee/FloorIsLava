@@ -486,7 +486,7 @@ public class Arena implements Listener
                 }, 60);
 
                 player.sendMessage(GOOD + "You are now invisible!");
-                player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1.1f);
+                player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.1f);
 
                 itemUseDelay.invis = System.currentTimeMillis() + invisUseDelay;
             }
@@ -504,7 +504,7 @@ public class Arena implements Listener
                 if(isPlayerNearWebs(player, 1))
                 {
                     player.sendMessage(BAD + "You can not use a boost while near webs!");
-                    player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
                     return;
                 }
 
@@ -519,7 +519,7 @@ public class Arena implements Listener
 
                 player.sendMessage(GOOD + "Woooooosh ...");
                 player.setVelocity(vector);
-                player.playSound(player.getLocation(), Sound.GHAST_FIREBALL, 1f, 1f);
+                player.playSound(player.getLocation(), Sound.ENTITY_GHAST_SHOOT, 1f, 1f);
 
                 itemUseDelay.boost = System.currentTimeMillis() + boostUseDelay;
             }
@@ -554,7 +554,7 @@ public class Arena implements Listener
         Player player = event.getPlayer();
         String playerName = player.getName();
         Player rightClicked = (Player) rightClickedEntity;
-        ItemStack heldItem = player.getInventory().getItemInHand();
+        ItemStack heldItem = player.getInventory().getItemInMainHand();
 
         if(!started || !playing.containsKey(playerName)) return;
 
@@ -578,7 +578,7 @@ public class Arena implements Listener
                 if(isPlayerNearWebs(rightClicked, 2))
                 {
                     player.sendMessage(BAD + "You can not launch a player near webs!");
-                    player.playSound(player.getLocation(), Sound.ITEM_BREAK, 1, 1);
+                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
                     return;
                 }
 
@@ -593,7 +593,7 @@ public class Arena implements Listener
 
                 rightClicked.getLocation().setDirection(playerDir);
                 rightClicked.setVelocity(playerDir);
-                player.playSound(player.getLocation(), Sound.HURT_FLESH, 1f, 1f);
+                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_HURT, 1f, 1f);
 
                 itemUseDelay.hook = System.currentTimeMillis() + hookUseDelay;
             }
@@ -750,7 +750,18 @@ public class Arena implements Listener
         entity.setCustomNameVisible(true);
         entity.setCustomName(ChatColor.LIGHT_PURPLE + "\\o/ CHIKUN \\o/");
 
-        Bukkit.getScheduler().runTaskLater(plugin, entity::remove, 200);
+        Bukkit.getScheduler().runTaskLater(plugin, () ->
+        {
+            FireworkEffect effect = FireworkEffect.builder()
+                .flicker(true)
+                .trail(false)
+                .with(Type.STAR)
+                .withColor(Color.GREEN)
+                .withFade(Color.WHITE)
+                .build();
+            FireworkSpark.spark(effect, entity.getLocation());
+            entity.remove();
+        }, 200);
     }
 
     @EventHandler
@@ -918,7 +929,7 @@ public class Arena implements Listener
                 player.getInventory().setBoots(null);
 
                 player.teleport(arenaCuboidArea.getRandomLocationInside(world));
-                player.getInventory().setContents(getContentsFromLoadout(loadout));
+                player.getInventory().setStorageContents(getContentsFromLoadout(loadout));
             }
         }
 
@@ -1194,7 +1205,7 @@ public class Arena implements Listener
 
     private boolean doesPlayerHaveItems(Player player)
     {
-        for(ItemStack itemStack : player.getInventory().getContents())
+        for(ItemStack itemStack : player.getInventory().getStorageContents())
         {
             if(itemStack != null && !itemStack.getType().equals(Material.AIR)) return true;
         }
@@ -1213,14 +1224,14 @@ public class Arena implements Listener
     {
         int randomAbilitySlot = random.nextInt(7);
 
-        while(from.getInventory().getContents()[randomAbilitySlot] == null
-                || from.getInventory().getContents()[randomAbilitySlot].getType()
+        while(from.getInventory().getStorageContents()[randomAbilitySlot] == null
+                || from.getInventory().getStorageContents()[randomAbilitySlot].getType()
                 .equals(Material.AIR))
         {
             randomAbilitySlot = random.nextInt(7);
         }
 
-        ItemStack takenAway = from.getInventory().getContents()[randomAbilitySlot];
+        ItemStack takenAway = from.getInventory().getStorageContents()[randomAbilitySlot];
 
         if(takenAway.getAmount() == 1)
         {
