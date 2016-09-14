@@ -872,6 +872,18 @@ public class Arena implements Listener
     }
 
     @EventHandler
+    public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent event)
+    {
+        Player player = event.getPlayer();
+        String playerName = player.getName();
+
+        if (playing.containsKey(playerName))
+        {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event)
     {
         leave(event.getPlayer());
@@ -930,6 +942,7 @@ public class Arena implements Listener
 
                 player.teleport(arenaCuboidArea.getRandomLocationInside(world));
                 player.getInventory().setStorageContents(getContentsFromLoadout(loadout));
+                player.getInventory().setExtraContents(new ItemStack[0]);
             }
         }
 
