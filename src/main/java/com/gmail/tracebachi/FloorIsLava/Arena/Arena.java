@@ -250,7 +250,7 @@ public class Arena implements Listener
 
     public int getPlayingSize()
     {
-        return watching.size();
+        return playing.size();
     }
 
     public Map<String, Loadout> getLoadoutMap()
@@ -369,7 +369,7 @@ public class Arena implements Listener
 
             for(Map.Entry<String, PlayerState> entry : playing.entrySet())
             {
-                Player player = Bukkit.getPlayer(entry.getKey());
+                Player player = Bukkit.getPlayerExact(entry.getKey());
                 PlayerState state = entry.getValue();
 
                 state.restoreInventory(player);
@@ -473,7 +473,7 @@ public class Arena implements Listener
 
                 Bukkit.getScheduler().runTaskLater(plugin, () ->
                 {
-                    Player playerToMakeVisible = Bukkit.getPlayer(playerName);
+                    Player playerToMakeVisible = Bukkit.getPlayerExact(playerName);
 
                     if(playerToMakeVisible == null) { return; }
 
@@ -909,7 +909,7 @@ public class Arena implements Listener
         while(iter.hasNext())
         {
             Map.Entry<String, PlayerState> entry = iter.next();
-            Player player = Bukkit.getPlayer(entry.getKey());
+            Player player = Bukkit.getPlayerExact(entry.getKey());
 
             if(player == null)
             {
@@ -964,7 +964,7 @@ public class Arena implements Listener
         while(iter.hasNext())
         {
             Map.Entry<String, PlayerState> entry = iter.next();
-            Player player = Bukkit.getPlayer(entry.getKey());
+            Player player = Bukkit.getPlayerExact(entry.getKey());
             PlayerState state = entry.getValue();
             Location location = player.getLocation();
 
@@ -981,6 +981,7 @@ public class Arena implements Listener
                 plugin.getEconomy().depositPlayer(entry.getKey(), scaledBaseReward);
                 player.teleport(watchCuboidArea.getRandomLocationInside(world));
 
+                watching.add(player.getName());
                 broadcast(BAD + entry.getKey() + " fell! " + playing.size() + " left!");
             }
         }
@@ -999,7 +1000,7 @@ public class Arena implements Listener
 
         for(Map.Entry<String, PlayerState> entry : playing.entrySet())
         {
-            Player player = Bukkit.getPlayer(entry.getKey());
+            Player player = Bukkit.getPlayerExact(entry.getKey());
             PlayerState state = entry.getValue();
 
             state.restoreInventory(player);
@@ -1120,7 +1121,7 @@ public class Arena implements Listener
         {
             if(!name.equalsIgnoreCase(exclude))
             {
-                Player target = Bukkit.getPlayer(name);
+                Player target = Bukkit.getPlayerExact(name);
 
                 if(target != null)
                 {
@@ -1133,7 +1134,7 @@ public class Arena implements Listener
         {
             if(!name.equalsIgnoreCase(exclude))
             {
-                Player target = Bukkit.getPlayer(name);
+                Player target = Bukkit.getPlayerExact(name);
 
                 if(target != null)
                 {
