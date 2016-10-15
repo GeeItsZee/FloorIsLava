@@ -542,6 +542,7 @@ public class Arena implements Listener
                 player.sendMessage(BAD + "You cannot throw eggs yet.");
             }
         }
+        player.updateInventory();
     }
 
     @EventHandler
@@ -666,6 +667,7 @@ public class Arena implements Listener
                 player.sendMessage(BAD + "You cannot attempt to steal abilities yet.");
             }
         }
+        player.updateInventory();
     }
 
     @EventHandler
@@ -776,12 +778,12 @@ public class Arena implements Listener
         event.setNumHatches((byte) 4);
 
         FireworkEffect effect = FireworkEffect.builder()
-                .flicker(true)
-                .trail(false)
-                .with(Type.STAR)
-                .withColor(Color.GREEN)
-                .withFade(Color.WHITE)
-                .build();
+            .flicker(true)
+            .trail(false)
+            .with(Type.STAR)
+            .withColor(Color.GREEN)
+            .withFade(Color.WHITE)
+            .build();
         FireworkSpark.spark(effect, location);
     }
 
@@ -1014,7 +1016,7 @@ public class Arena implements Listener
             player.sendMessage(GOOD + "You won! Here's a prize and $" +
                 (scaledWinnerReward + wager));
             broadcast(GOOD + entry.getKey() + " won that round and a prize of $" +
-                (scaledWinnerReward + wager));
+                (scaledWinnerReward + wager), player.getName());
 
             player.getInventory().addItem(winPrize);
             plugin.getEconomy().depositPlayer(entry.getKey(), (scaledWinnerReward + wager));
@@ -1064,7 +1066,7 @@ public class Arena implements Listener
         {
             countdown = maxCountdown;
             countdownTask = Bukkit.getScheduler().runTaskTimer(plugin,
-                    this::countdownTick, 100, 10);
+                this::countdownTick, 100, 10);
         }
         else
         {
@@ -1176,7 +1178,7 @@ public class Arena implements Listener
                         int zpos = pz + z;
 
                         if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.AIR) &&
-                                arenaCuboidArea.isInside(xpos, ypos, zpos))
+                            arenaCuboidArea.isInside(xpos, ypos, zpos))
                         {
                             world.getBlockAt(xpos, ypos, zpos).setType(Material.WEB);
                         }
@@ -1206,7 +1208,7 @@ public class Arena implements Listener
                         int zpos = pz + z;
 
                         if(world.getBlockAt(xpos, ypos, zpos).getType().equals(Material.WEB) &&
-                                arenaCuboidArea.isInside(xpos, ypos, zpos))
+                            arenaCuboidArea.isInside(xpos, ypos, zpos))
                         {
                             return true;
                         }
@@ -1239,8 +1241,8 @@ public class Arena implements Listener
         int randomAbilitySlot = random.nextInt(7);
 
         while(from.getInventory().getStorageContents()[randomAbilitySlot] == null
-                || from.getInventory().getStorageContents()[randomAbilitySlot].getType()
-                .equals(Material.AIR))
+            || from.getInventory().getStorageContents()[randomAbilitySlot].getType()
+            .equals(Material.AIR))
         {
             randomAbilitySlot = random.nextInt(7);
         }
