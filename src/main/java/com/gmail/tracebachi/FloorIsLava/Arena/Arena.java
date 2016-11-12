@@ -231,6 +231,7 @@ public class Arena implements Listener
 
         player.sendMessage(GOOD + "You have left FloorIsLava.");
         player.setFireTicks(0);
+        player.setHealth(player.getMaxHealth());
         broadcast(BAD + name + " has left.", null);
     }
 
@@ -388,6 +389,55 @@ public class Arena implements Listener
     /**************************************************************************
      * Arena Event Methods
      *************************************************************************/
+
+    @EventHandler
+    public void onPlayerChestClick(PlayerInteractEvent event)
+    {
+        Player player = event.getPlayer();
+        Inventory inventory = player.getInventory();
+        String playerName = player.getName();
+
+        if(!started || !playing.containsKey(playerName)) { return; }
+
+        if(event.getAction().equals(Action.RIGHT_CLICK_BLOCK)
+            && event.getClickedBlock().getType().equals(Material.CHEST))
+        {
+            event.setCancelled(true);
+            FireworkEffect effect = FireworkEffect.builder()
+                .flicker(true)
+                .trail(false)
+                .with(Type.STAR)
+                .withColor(Color.GREEN)
+                .withFade(Color.WHITE)
+                .build();
+            FireworkSpark.spark(effect, event.getClickedBlock().getLocation());
+            event.getClickedBlock().setType(Material.AIR);
+            player.sendMessage(GOOD + "You have collected a treasure chest, enjoy your items!");
+            Random random = new Random();
+            int firstChoice = random.nextInt(7);
+            int secondChoice = random.nextInt(7);
+            ItemStack[] newItems = new ItemStack[] {
+                Loadout.BOOST_ITEM.clone(),
+                Loadout.CHIKUN_ITEM.clone(),
+                Loadout.HOOK_ITEM.clone(),
+                Loadout.INVIS_ITEM.clone(),
+                Loadout.STEAL_ITEM.clone(),
+                Loadout.WEB_ITEM.clone(),
+                Loadout.TNT_ITEM.clone() };
+            if(player.getInventory().contains(newItems[firstChoice].getType()))
+            {
+                Material type = newItems[firstChoice].getType();
+                int size = inventory.getItem(inventory.first(type)).getAmount();
+                inventory.getItem(inventory.first(type)).setAmount(size + 1);
+            }
+            if(player.getInventory().contains(newItems[secondChoice].getType()))
+            {
+                Material type = newItems[secondChoice].getType();
+                int size = inventory.getItem(inventory.first(type)).getAmount();
+                inventory.getItem(inventory.first(type)).setAmount(size + 1);
+            }
+        }
+    }
 
     @EventHandler
     public void onPlayerBlockClick(PlayerInteractEvent event)
@@ -977,6 +1027,7 @@ public class Arena implements Listener
                 state.restoreLocation(player);
                 state.restoreGameMode(player);
                 player.setFireTicks(0);
+                player.setHealth(player.getMaxHealth());
 
                 player.sendMessage(GOOD + "Thanks for playing!");
                 player.getInventory().addItem(losePrize);
@@ -1009,6 +1060,7 @@ public class Arena implements Listener
             state.restoreLocation(player);
             state.restoreGameMode(player);
             player.setFireTicks(0);
+            player.setHealth(player.getMaxHealth());
 
             plugin.getLogger().info(entry.getKey() + " won a round. Amount = " +
                 (scaledWinnerReward + wager));
