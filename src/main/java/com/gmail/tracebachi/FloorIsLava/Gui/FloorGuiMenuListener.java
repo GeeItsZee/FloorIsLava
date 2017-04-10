@@ -18,6 +18,7 @@ package com.gmail.tracebachi.FloorIsLava.Gui;
 
 import com.gmail.tracebachi.FloorIsLava.Arena.Arena;
 import com.gmail.tracebachi.FloorIsLava.Utils.Loadout;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -106,12 +107,18 @@ public class FloorGuiMenuListener implements Listener
 
         if(change == 1 && loadout.countSum() == maxPoints)
         {
-            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
+            if(clickedItem != null && clickedItem.getType() != Material.AIR)
+            {
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
+            }
             return;
         }
         else if(change == -1 && loadout.countSum() == 0)
         {
-            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
+            if(clickedItem != null && clickedItem.getType() != Material.AIR)
+            {
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
+            }
             return;
         }
 

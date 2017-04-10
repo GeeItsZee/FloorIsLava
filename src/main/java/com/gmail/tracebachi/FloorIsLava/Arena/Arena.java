@@ -430,11 +430,19 @@ public class Arena implements Listener
                 int size = inventory.getItem(inventory.first(type)).getAmount();
                 inventory.getItem(inventory.first(type)).setAmount(size + 1);
             }
+            else
+            {
+                inventory.addItem(newItems[firstChoice]);
+            }
             if(player.getInventory().contains(newItems[secondChoice].getType()))
             {
                 Material type = newItems[secondChoice].getType();
                 int size = inventory.getItem(inventory.first(type)).getAmount();
                 inventory.getItem(inventory.first(type)).setAmount(size + 1);
+            }
+            else
+            {
+                inventory.addItem(newItems[secondChoice]);
             }
         }
     }
@@ -1318,7 +1326,7 @@ public class Arena implements Listener
 
     private ItemStack[] getContentsFromLoadout(Loadout loadout)
     {
-        ItemStack[] contents = new ItemStack[7];
+        ItemStack[] contents = new ItemStack[54];
         int c = 0;
 
         if(loadout == null)
