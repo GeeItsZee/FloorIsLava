@@ -1064,6 +1064,8 @@ public class Arena implements Listener
             Player player = Bukkit.getPlayerExact(entry.getKey());
             PlayerState state = entry.getValue();
 
+            plugin.getFloorLeaderboard().addOneToScore(entry.getKey());
+
             state.restoreInventory(player);
             state.restoreLocation(player);
             state.restoreGameMode(player);
@@ -1168,6 +1170,8 @@ public class Arena implements Listener
             countdownTask.cancel();
             countdownTask = null;
         }
+
+        plugin.getFloorLeaderboard().recalculate();
 
         started = false;
     }
@@ -1326,7 +1330,7 @@ public class Arena implements Listener
 
     private ItemStack[] getContentsFromLoadout(Loadout loadout)
     {
-        ItemStack[] contents = new ItemStack[54];
+        ItemStack[] contents = new ItemStack[36];
         int c = 0;
 
         if(loadout == null)

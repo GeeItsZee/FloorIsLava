@@ -19,8 +19,10 @@ package com.gmail.tracebachi.FloorIsLava;
 import com.gmail.tracebachi.FloorIsLava.Arena.Arena;
 import com.gmail.tracebachi.FloorIsLava.Commands.FloorBoosterCommand;
 import com.gmail.tracebachi.FloorIsLava.Commands.FloorCommand;
+import com.gmail.tracebachi.FloorIsLava.Commands.FloorHoloCommand;
 import com.gmail.tracebachi.FloorIsLava.Commands.ManageFloorCommand;
 import com.gmail.tracebachi.FloorIsLava.Gui.FloorGuiMenuListener;
+import com.gmail.tracebachi.FloorIsLava.Leaderboard.FloorLeaderboard;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -33,13 +35,16 @@ import java.io.File;
  */
 public class FloorIsLavaPlugin extends JavaPlugin
 {
+    private static FloorIsLavaPlugin instance;
     private Arena arena;
     private FloorGuiMenuListener listener;
+    private FloorLeaderboard floorLeaderboard;
     private Economy economy;
 
     @Override
     public void onLoad()
     {
+        instance = this;
         File config = new File(getDataFolder(), "config.yml");
         if(!config.exists())
         {
@@ -73,9 +78,12 @@ public class FloorIsLavaPlugin extends JavaPlugin
         getServer().getPluginManager().registerEvents(arena, this);
         listener = new FloorGuiMenuListener(arena);
         getServer().getPluginManager().registerEvents(listener, this);
+        floorLeaderboard = new FloorLeaderboard(new File(getDataFolder(), "leaderboards.yml"));
+        floorLeaderboard.load();
 
         getCommand("floor").setExecutor(new FloorCommand(arena));
         getCommand("floorbooster").setExecutor(new FloorBoosterCommand(arena));
+        getCommand("floorholo").setExecutor(new FloorHoloCommand(floorLeaderboard));
         getCommand("mfloor").setExecutor(new ManageFloorCommand(this, arena));
     }
 
@@ -84,16 +92,30 @@ public class FloorIsLavaPlugin extends JavaPlugin
     {
         getCommand("mfloor").setExecutor(null);
         getCommand("floorbooster").setExecutor(null);
+        getCommand("floorholo").setExecutor(null);
         getCommand("floor").setExecutor(null);
 
         listener = null;
 
         arena.forceStop(Bukkit.getConsoleSender());
         arena = null;
+
+        floorLeaderboard.save();
+        floorLeaderboard.clear();
     }
 
     public Economy getEconomy()
     {
         return economy;
+    }
+
+    public FloorLeaderboard getFloorLeaderboard()
+    {
+        return floorLeaderboard;
+    }
+
+    public static FloorIsLavaPlugin getInstance()
+    {
+        return instance;
     }
 }
