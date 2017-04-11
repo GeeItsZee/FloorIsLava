@@ -173,8 +173,9 @@ public class FloorLeaderboard
         for(int i = 0; i < leaderboardEntries.size() && i < maxEntries; i++)
         {
             LeaderboardEntry entry = leaderboardEntries.get(i);
+            String color = "&" + (i == 0 ? "e" : i == 1 ? "7" : i == 2 ? "6" : "f");
             hologram.appendTextLine(translate(
-                "&6#" + (i + 1) + ". " + entry.getName() + " &8- &a" + entry.getScore()));
+                color + "#" + (i + 1) + ". " + entry.getName() + " &8- &a" + entry.getScore()));
         }
     }
 
