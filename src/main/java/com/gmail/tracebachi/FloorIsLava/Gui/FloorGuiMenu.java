@@ -34,6 +34,7 @@ public class FloorGuiMenu implements Listener
 {
     public static final ItemStack JOIN_ITEM = new ItemStack(Material.LEATHER_CHESTPLATE);
     public static final ItemStack LEAVE_ITEM = new ItemStack(Material.LEATHER_LEGGINGS);
+    public static final ItemStack SCORE_ITEM = new ItemStack(Material.NETHER_STAR);
     public static final ItemStack WATCH_ITEM = new ItemStack(Material.EYE_OF_ENDER);
     public static final ItemStack HELP_ITEM = new ItemStack(Material.MAP);
     public static final ItemStack POINTS_ITEM = new ItemStack(Material.EMERALD);
@@ -60,8 +61,15 @@ public class FloorGuiMenu implements Listener
         String name = player.getName();
         Loadout loadout = arena.getLoadoutMap().getOrDefault(name, new Loadout());
 
+        ItemStack scoreClone = SCORE_ITEM.clone();
+        ItemMeta meta = scoreClone.getItemMeta();
+        meta.setLore(Collections.singletonList(ChatColor.WHITE + "Floor Is Lava wins: "
+            + arena.getFloorLeaderboard().getScore(name)));
+        scoreClone.setItemMeta(meta);
+
         inventory.setItem(2, JOIN_ITEM);
         inventory.setItem(3, LEAVE_ITEM);
+        inventory.setItem(4, scoreClone);
         inventory.setItem(5, WATCH_ITEM);
         inventory.setItem(6, HELP_ITEM);
 
@@ -98,6 +106,10 @@ public class FloorGuiMenu implements Listener
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Leave");
         meta.setLore(Collections.singletonList(ChatColor.WHITE + "Click to leave Floor Is Lava"));
         LEAVE_ITEM.setItemMeta(meta);
+
+        meta = SCORE_ITEM.getItemMeta();
+        meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Wins");
+        SCORE_ITEM.setItemMeta(meta);
 
         meta = WATCH_ITEM.getItemMeta();
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Watch");

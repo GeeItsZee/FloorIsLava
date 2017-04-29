@@ -38,7 +38,6 @@ public class FloorIsLavaPlugin extends JavaPlugin
     private static FloorIsLavaPlugin instance;
     private Arena arena;
     private FloorGuiMenuListener listener;
-    private FloorLeaderboard floorLeaderboard;
     private Economy economy;
 
     @Override
@@ -78,12 +77,10 @@ public class FloorIsLavaPlugin extends JavaPlugin
         getServer().getPluginManager().registerEvents(arena, this);
         listener = new FloorGuiMenuListener(arena);
         getServer().getPluginManager().registerEvents(listener, this);
-        floorLeaderboard = new FloorLeaderboard(new File(getDataFolder(), "leaderboards.yml"));
-        floorLeaderboard.load();
 
         getCommand("floor").setExecutor(new FloorCommand(arena));
         getCommand("floorbooster").setExecutor(new FloorBoosterCommand(arena));
-        getCommand("floorholo").setExecutor(new FloorHoloCommand(floorLeaderboard));
+        getCommand("floorholo").setExecutor(new FloorHoloCommand(arena.getFloorLeaderboard()));
         getCommand("mfloor").setExecutor(new ManageFloorCommand(this, arena));
     }
 
@@ -100,18 +97,13 @@ public class FloorIsLavaPlugin extends JavaPlugin
         arena.forceStop(Bukkit.getConsoleSender());
         arena = null;
 
-        floorLeaderboard.save();
-        floorLeaderboard.clear();
+        arena.getFloorLeaderboard().save();
+        arena.getFloorLeaderboard().clear();
     }
 
     public Economy getEconomy()
     {
         return economy;
-    }
-
-    public FloorLeaderboard getFloorLeaderboard()
-    {
-        return floorLeaderboard;
     }
 
     public static FloorIsLavaPlugin getInstance()

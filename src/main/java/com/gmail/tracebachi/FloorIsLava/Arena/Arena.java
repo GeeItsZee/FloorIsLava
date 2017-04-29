@@ -18,6 +18,7 @@ package com.gmail.tracebachi.FloorIsLava.Arena;
 
 import com.gmail.tracebachi.FloorIsLava.Booster.Booster;
 import com.gmail.tracebachi.FloorIsLava.FloorIsLavaPlugin;
+import com.gmail.tracebachi.FloorIsLava.Leaderboard.FloorLeaderboard;
 import com.gmail.tracebachi.FloorIsLava.Utils.*;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.*;
@@ -46,6 +47,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
+import java.io.File;
 import java.util.*;
 
 import static com.gmail.tracebachi.FloorIsLava.Utils.ChatStrings.BAD;
@@ -58,6 +60,7 @@ public class Arena implements Listener
 {
     private FloorIsLavaPlugin plugin;
     private Booster booster;
+    private FloorLeaderboard floorLeaderboard;
     private Random random = new Random();
 
     private ItemStack winPrize;
@@ -103,6 +106,8 @@ public class Arena implements Listener
     {
         this.plugin = plugin;
         this.booster = new Booster(plugin, this);
+        this.floorLeaderboard = new FloorLeaderboard(new File(plugin.getDataFolder(), "leaderboards.yml"));
+        this.floorLeaderboard.load();
         this.winPrize = new ItemStack(Material.POTATO_ITEM);
         this.losePrize = new ItemStack(Material.POISONOUS_POTATO);
 
@@ -277,6 +282,11 @@ public class Arena implements Listener
     public Booster getBooster()
     {
         return booster;
+    }
+
+    public FloorLeaderboard getFloorLeaderboard()
+    {
+        return floorLeaderboard;
     }
 
     public int getBoosterBroadcastRange()
@@ -1070,7 +1080,7 @@ public class Arena implements Listener
             Player player = Bukkit.getPlayerExact(entry.getKey());
             PlayerState state = entry.getValue();
 
-            plugin.getFloorLeaderboard().addOneToScore(entry.getKey());
+            floorLeaderboard.addOneToScore(entry.getKey());
 
             state.restoreInventory(player);
             state.restoreLocation(player);
@@ -1177,7 +1187,7 @@ public class Arena implements Listener
             countdownTask = null;
         }
 
-        plugin.getFloorLeaderboard().recalculate();
+        floorLeaderboard.recalculate();
 
         started = false;
     }

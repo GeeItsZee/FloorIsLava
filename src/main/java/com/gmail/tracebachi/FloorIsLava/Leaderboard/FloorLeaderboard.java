@@ -56,6 +56,18 @@ public class FloorLeaderboard
         entries.put(name, entry);
     }
 
+    public int getScore(String name)
+    {
+        if(entries.containsKey(name))
+        {
+            return entries.get(name).getScore();
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
     public void addNewLeaderboard(Location location)
     {
         Hologram hologram = spawnHolo(location);
