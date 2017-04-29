@@ -368,6 +368,12 @@ public class Arena implements Listener
                 arenaTask = null;
             }
 
+            if(countdownTask != null)
+            {
+                countdownTask.cancel();
+                countdownTask = null;
+            }
+
             for(Map.Entry<String, PlayerState> entry : playing.entrySet())
             {
                 Player player = Bukkit.getPlayerExact(entry.getKey());
