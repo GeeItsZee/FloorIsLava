@@ -141,6 +141,12 @@ public class FloorLeaderboard
         }
     }
 
+    public void resetScores()
+    {
+        config.set("Entries", null);
+        entries.clear();
+    }
+
     private void loadEntries()
     {
         ConfigurationSection section = config.getConfigurationSection("Entries");
@@ -169,6 +175,7 @@ public class FloorLeaderboard
     private void saveEntries()
     {
         int c = 0;
+        config.set("Entries", null);
         for(LeaderboardEntry entry : entries.values())
         {
             config.set("Entries." + c + ".Name", entry.getName());

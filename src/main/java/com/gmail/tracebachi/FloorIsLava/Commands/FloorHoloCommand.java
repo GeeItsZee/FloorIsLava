@@ -56,7 +56,7 @@ public class FloorHoloCommand implements CommandExecutor
 
         if(args.length == 0)
         {
-            player.sendMessage(BAD + "/floorholo [place, remove]");
+            player.sendMessage(BAD + "/floorholo [place, remove, reset]");
             return true;
         }
 
@@ -77,6 +77,11 @@ public class FloorHoloCommand implements CommandExecutor
             {
                 player.sendMessage(BAD + "/floorholo remove <index>");
             }
+        }
+        else if(args[0].equalsIgnoreCase("reset"))
+        {
+            floorLeaderboard.resetScores();
+            player.sendMessage(GOOD + "Scores reset.");
         }
         else
         {
