@@ -145,6 +145,8 @@ public class FloorLeaderboard
     {
         config.set("Entries", null);
         entries.clear();
+        save();
+        recalculate();
     }
 
     private void loadEntries()
