@@ -2,12 +2,14 @@ name: FloorIsLava
 main: com.gmail.tracebachi.FloorIsLava.FloorIsLavaPlugin
 version: ${project.version}
 authors: [Trace Bachi (BigBossZee), Jeremy Lugo (Refrigerbater)]
-depend: [Vault]
+depend: [Vault, HolographicDisplays]
 commands:
   floor:
     description: Main FIL command.
   floorbooster:
     description: FIL command for arena boosters.
+  floorholo:
+    description: FIL command for leaderboards.
   mfloor:
     description: Main FIL management command.
 permissions:

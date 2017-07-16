@@ -50,7 +50,7 @@ public class ManageFloorCommand implements CommandExecutor
 
         if(args.length == 0)
         {
-            sender.sendMessage(BAD + "/mfloor [start, stop, Booster, reload, enable, disable]");
+            sender.sendMessage(BAD + "/mfloor [start, stop, reload, enable, disable]");
             return true;
         }
 
@@ -80,7 +80,7 @@ public class ManageFloorCommand implements CommandExecutor
         }
         else
         {
-            sender.sendMessage(BAD + "/mfloor [start, stop, Booster, reload, enable, disable]");
+            sender.sendMessage(BAD + "/mfloor [start, stop, reload, enable, disable]");
         }
         return true;
     }

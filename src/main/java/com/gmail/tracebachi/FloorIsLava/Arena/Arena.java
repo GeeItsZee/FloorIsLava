@@ -18,6 +18,7 @@ package com.gmail.tracebachi.FloorIsLava.Arena;
 
 import com.gmail.tracebachi.FloorIsLava.Booster.Booster;
 import com.gmail.tracebachi.FloorIsLava.FloorIsLavaPlugin;
+import com.gmail.tracebachi.FloorIsLava.Leaderboard.FloorLeaderboard;
 import com.gmail.tracebachi.FloorIsLava.Utils.*;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.*;
@@ -46,6 +47,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
+import java.io.File;
 import java.util.*;
 
 import static com.gmail.tracebachi.FloorIsLava.Utils.ChatStrings.BAD;
@@ -58,6 +60,7 @@ public class Arena implements Listener
 {
     private FloorIsLavaPlugin plugin;
     private Booster booster;
+    private FloorLeaderboard floorLeaderboard;
     private Random random = new Random();
 
     private ItemStack winPrize;
@@ -103,6 +106,8 @@ public class Arena implements Listener
     {
         this.plugin = plugin;
         this.booster = new Booster(plugin, this);
+        this.floorLeaderboard = new FloorLeaderboard(new File(plugin.getDataFolder(), "leaderboards.yml"));
+        this.floorLeaderboard.load();
         this.winPrize = new ItemStack(Material.POTATO_ITEM);
         this.losePrize = new ItemStack(Material.POISONOUS_POTATO);
 
@@ -231,6 +236,7 @@ public class Arena implements Listener
 
         player.sendMessage(GOOD + "You have left FloorIsLava.");
         player.setFireTicks(0);
+        player.setHealth(player.getMaxHealth());
         broadcast(BAD + name + " has left.", null);
     }
 
@@ -276,6 +282,11 @@ public class Arena implements Listener
     public Booster getBooster()
     {
         return booster;
+    }
+
+    public FloorLeaderboard getFloorLeaderboard()
+    {
+        return floorLeaderboard;
     }
 
     public int getBoosterBroadcastRange()
@@ -367,6 +378,12 @@ public class Arena implements Listener
                 arenaTask = null;
             }
 
+            if(countdownTask != null)
+            {
+                countdownTask.cancel();
+                countdownTask = null;
+            }
+
             for(Map.Entry<String, PlayerState> entry : playing.entrySet())
             {
                 Player player = Bukkit.getPlayerExact(entry.getKey());
@@ -388,6 +405,63 @@ public class Arena implements Listener
     /**************************************************************************
      * Arena Event Methods
      *************************************************************************/
+
+    @EventHandler
+    public void onPlayerChestClick(PlayerInteractEvent event)
+    {
+        Player player = event.getPlayer();
+        Inventory inventory = player.getInventory();
+        String playerName = player.getName();
+
+        if(!started || !playing.containsKey(playerName)) { return; }
+
+        if(event.getAction().equals(Action.RIGHT_CLICK_BLOCK)
+            && event.getClickedBlock().getType().equals(Material.CHEST))
+        {
+            event.setCancelled(true);
+            FireworkEffect effect = FireworkEffect.builder()
+                .flicker(true)
+                .trail(false)
+                .with(Type.STAR)
+                .withColor(Color.GREEN)
+                .withFade(Color.WHITE)
+                .build();
+            FireworkSpark.spark(effect, event.getClickedBlock().getLocation());
+            event.getClickedBlock().setType(Material.AIR);
+            player.sendMessage(GOOD + "You have collected a treasure chest, enjoy your items!");
+            Random random = new Random();
+            int firstChoice = random.nextInt(7);
+            int secondChoice = random.nextInt(7);
+            ItemStack[] newItems = new ItemStack[] {
+                Loadout.BOOST_ITEM.clone(),
+                Loadout.CHIKUN_ITEM.clone(),
+                Loadout.HOOK_ITEM.clone(),
+                Loadout.INVIS_ITEM.clone(),
+                Loadout.STEAL_ITEM.clone(),
+                Loadout.WEB_ITEM.clone(),
+                Loadout.TNT_ITEM.clone() };
+            if(player.getInventory().contains(newItems[firstChoice].getType()))
+            {
+                Material type = newItems[firstChoice].getType();
+                int size = inventory.getItem(inventory.first(type)).getAmount();
+                inventory.getItem(inventory.first(type)).setAmount(size + 1);
+            }
+            else
+            {
+                inventory.addItem(newItems[firstChoice]);
+            }
+            if(player.getInventory().contains(newItems[secondChoice].getType()))
+            {
+                Material type = newItems[secondChoice].getType();
+                int size = inventory.getItem(inventory.first(type)).getAmount();
+                inventory.getItem(inventory.first(type)).setAmount(size + 1);
+            }
+            else
+            {
+                inventory.addItem(newItems[secondChoice]);
+            }
+        }
+    }
 
     @EventHandler
     public void onPlayerBlockClick(PlayerInteractEvent event)
@@ -542,6 +616,7 @@ public class Arena implements Listener
                 player.sendMessage(BAD + "You cannot throw eggs yet.");
             }
         }
+        player.updateInventory();
     }
 
     @EventHandler
@@ -666,6 +741,7 @@ public class Arena implements Listener
                 player.sendMessage(BAD + "You cannot attempt to steal abilities yet.");
             }
         }
+        player.updateInventory();
     }
 
     @EventHandler
@@ -975,6 +1051,7 @@ public class Arena implements Listener
                 state.restoreLocation(player);
                 state.restoreGameMode(player);
                 player.setFireTicks(0);
+                player.setHealth(player.getMaxHealth());
 
                 player.sendMessage(GOOD + "Thanks for playing!");
                 player.getInventory().addItem(losePrize);
@@ -1003,10 +1080,13 @@ public class Arena implements Listener
             Player player = Bukkit.getPlayerExact(entry.getKey());
             PlayerState state = entry.getValue();
 
+            floorLeaderboard.addOneToScore(entry.getKey());
+
             state.restoreInventory(player);
             state.restoreLocation(player);
             state.restoreGameMode(player);
             player.setFireTicks(0);
+            player.setHealth(player.getMaxHealth());
 
             plugin.getLogger().info(entry.getKey() + " won a round. Amount = " +
                 (scaledWinnerReward + wager));
@@ -1014,7 +1094,7 @@ public class Arena implements Listener
             player.sendMessage(GOOD + "You won! Here's a prize and $" +
                 (scaledWinnerReward + wager));
             broadcast(GOOD + entry.getKey() + " won that round and a prize of $" +
-                (scaledWinnerReward + wager));
+                (scaledWinnerReward + wager), player.getName());
 
             player.getInventory().addItem(winPrize);
             plugin.getEconomy().depositPlayer(entry.getKey(), (scaledWinnerReward + wager));
@@ -1106,6 +1186,8 @@ public class Arena implements Listener
             countdownTask.cancel();
             countdownTask = null;
         }
+
+        floorLeaderboard.recalculate();
 
         started = false;
     }
@@ -1264,7 +1346,7 @@ public class Arena implements Listener
 
     private ItemStack[] getContentsFromLoadout(Loadout loadout)
     {
-        ItemStack[] contents = new ItemStack[7];
+        ItemStack[] contents = new ItemStack[36];
         int c = 0;
 
         if(loadout == null)
