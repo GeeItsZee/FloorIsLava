@@ -85,7 +85,7 @@ public class FloorHoloCommand implements CommandExecutor
         }
         else
         {
-            player.sendMessage(BAD + "/floorholo [place, remove]");
+            player.sendMessage(BAD + "/floorholo [place, remove, reset]");
         }
 
         return true;

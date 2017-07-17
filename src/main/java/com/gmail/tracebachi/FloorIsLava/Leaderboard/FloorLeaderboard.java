@@ -166,8 +166,7 @@ public class FloorLeaderboard
 
     private void loadLocations()
     {
-        List<Location> locations = new ArrayList<>();
-        locations = (List<Location>) config.getList("Locations");
+        List<Location> locations = (List<Location>) config.getList("Locations");
         for(Location location : locations)
         {
             addNewLeaderboard(location);
@@ -198,22 +197,23 @@ public class FloorLeaderboard
 
     private Hologram spawnHolo(Location location)
     {
-        Hologram hologram = HologramsAPI.createHologram(FloorIsLavaPlugin.getInstance(), location);
-        return hologram;
+        return HologramsAPI.createHologram(FloorIsLavaPlugin.getInstance(), location);
     }
 
     private void setupHolo(Hologram hologram)
     {
         hologram.appendTextLine(translate(config.getString("LeaderboardTitle")));
         List<LeaderboardEntry> leaderboardEntries = new ArrayList<>(entries.values());
-        leaderboardEntries.sort(Comparator.reverseOrder());
-        for(int i = 0; i < leaderboardEntries.size() && i < maxEntries; i++)
+        EntrySorter.sortList(leaderboardEntries, Comparator.reverseOrder(), () ->
         {
-            LeaderboardEntry entry = leaderboardEntries.get(i);
-            String color = "&" + (i == 0 ? "e" : i == 1 ? "7" : i == 2 ? "6" : "f");
-            hologram.appendTextLine(translate(
-                color + "#" + (i + 1) + ". " + entry.getName() + " &8- &a" + entry.getScore()));
-        }
+            for(int i = 0; i < leaderboardEntries.size() && i < maxEntries; i++)
+            {
+                LeaderboardEntry entry = leaderboardEntries.get(i);
+                String color = "&" + (i == 0 ? "e" : i == 1 ? "7" : i == 2 ? "6" : "f");
+                hologram.appendTextLine(translate(
+                    color + "#" + (i + 1) + ". " + entry.getName() + " &8- &a" + entry.getScore()));
+            }
+        });
     }
 
     private void clearHolo(Hologram hologram)
