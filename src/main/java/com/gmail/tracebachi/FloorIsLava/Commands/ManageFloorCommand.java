@@ -60,7 +60,7 @@ public class ManageFloorCommand implements CommandExecutor
         }
         else if(args[0].equalsIgnoreCase("stop"))
         {
-            arena.forceStop(sender);
+            arena.forceStop(sender, true);
         }
         else if(args[0].equalsIgnoreCase("enable"))
         {
@@ -72,7 +72,7 @@ public class ManageFloorCommand implements CommandExecutor
         }
         else if(args[0].equalsIgnoreCase("reload"))
         {
-            arena.forceStop(sender);
+            arena.forceStop(sender, true);
             plugin.reloadConfig();
 
             arena.loadConfig(plugin.getConfig());

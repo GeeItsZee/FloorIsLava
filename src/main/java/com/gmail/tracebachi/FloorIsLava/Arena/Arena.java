@@ -339,7 +339,7 @@ public class Arena implements Listener
 
     public void disableArena(CommandSender sender)
     {
-        forceStop(sender);
+        forceStop(sender, true);
         enabled = false;
         sender.sendMessage(GOOD + "FloorIsLava disabled. " +
             "Players will not be able to join until renabled.");
@@ -368,7 +368,7 @@ public class Arena implements Listener
         }
     }
 
-    public void forceStop(CommandSender sender)
+    public void forceStop(CommandSender sender, boolean recalcLeaderboard)
     {
         if(started)
         {
@@ -395,7 +395,7 @@ public class Arena implements Listener
             }
 
             int oldWager = wager;
-            postStopCleanup();
+            postStopCleanup(recalcLeaderboard);
             wager = oldWager;
         }
 
@@ -1114,7 +1114,7 @@ public class Arena implements Listener
             firework.setFireworkMeta(fireworkMeta);
         }
 
-        postStopCleanup();
+        postStopCleanup(true);
     }
 
     private void countdownTick()
@@ -1152,7 +1152,7 @@ public class Arena implements Listener
         }
     }
 
-    private void postStopCleanup()
+    private void postStopCleanup(boolean recalcLeaderbaord)
     {
         degradeLevel = 0;
         elapsedTicks = 0;
@@ -1187,7 +1187,10 @@ public class Arena implements Listener
             countdownTask = null;
         }
 
-        floorLeaderboard.recalculate();
+        if (recalcLeaderbaord)
+        {
+            floorLeaderboard.recalculate();
+        }
 
         started = false;
     }

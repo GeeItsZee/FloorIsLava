@@ -94,7 +94,7 @@ public class FloorIsLavaPlugin extends JavaPlugin
 
         listener = null;
 
-        arena.forceStop(Bukkit.getConsoleSender());
+        arena.forceStop(Bukkit.getConsoleSender(), false);
 
         arena.getFloorLeaderboard().save();
         arena.getFloorLeaderboard().clear();
