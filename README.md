@@ -15,4 +15,4 @@ a custom implemention that handles joining, breaking, and rewards differently.
 Refer to the [config.yml](https://github.com/GeeItsZee/FloorIsLava/blob/master/src/main/resources/config.yml) in this repository or a similarly commented file in your `plugins/FloorIsLava/config.yml`. Each setting is described and can be tuned as desired.
 
 ## License
-FloorIsLava is under the GPLv3 Open Source license. Please refer to the [LICENSE](https://github.com/GeeItsZee/FloorIsLava/blob/master/config.yml) for further details.
+FloorIsLava is under the GPLv3 Open Source license. Please refer to the [LICENSE](https://github.com/GeeItsZee/FloorIsLava/blob/master/LICENSE.txt) for further details.
